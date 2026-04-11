@@ -1,0 +1,66 @@
+{
+  "name": "calculus_group_v1",
+  "description": "Exp6 per-group: 1500 iters, 8 layers, 128-bit granularity",
+  "base_model": "prism-ml/Bonsai-8B-gguf",
+  "flips": [
+    {
+      "layer": 2,
+      "proj": "up_proj",
+      "row": 11627,
+      "group": 12
+    },
+    {
+      "layer": 34,
+      "proj": "gate_proj",
+      "row": 11570,
+      "group": 4
+    },
+    {
+      "layer": 34,
+      "proj": "gate_proj",
+      "row": 9236,
+      "group": 29
+    },
+    {
+      "layer": 34,
+      "proj": "up_proj",
+      "row": 3555,
+      "group": 3
+    },
+    {
+      "layer": 34,
+      "proj": "up_proj",
+      "row": 1999,
+      "group": 17
+    },
+    {
+      "layer": 34,
+      "proj": "up_proj",
+      "row": 11417,
+      "group": 26
+    }
+  ],
+  "metadata": {
+    "search_algorithm": "greedy_hill_climbing_screened_mean",
+    "backend": "GGUFBackend",
+    "search_layers": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      10,
+      34
+    ],
+    "search_projs": [
+      "gate_proj",
+      "up_proj"
+    ],
+    "max_iters": 1500,
+    "control_penalty": 2.0,
+    "final_fitness": 0.006671666666666689,
+    "search_time_seconds": 751.4565441608429,
+    "screened_out": 331
+  }
+}

@@ -40,7 +40,7 @@ The patch was trained on other polynomials and other primes — but never saw `x
 
 True 1-bit LLMs have no post-training adaptation method — LoRA, fine-tuning, and QAT all require continuous weights or gradients that binary models lack. We introduce **Bankai**, the first post-training adaptation method for true 1-bit LLMs, using bitwise XOR operations on binary weights. Bankai patches are sparse XOR bitmasks that modify model weights in-place with a single bitwise operation, incur zero inference overhead, and compress to around one kilobyte.\*
 
-We validate on [Bonsai 8B](https://huggingface.co/prism-ml/Bonsai-8B-mlx-1bit) (PrismML, 2026), a true 1-bit, 8.2 billion parameter language model. Through eight experiments: (1) binary MLP weights exhibit massive redundancy; (2) scale-guided bit flips produce **3.88x** more behavioral impact than random flips; (3–4) greedy search yields patches that correct specific calculus failures in free generation; (5) patches trained on few probes memorize rather than generalize; (6) training on diverse probe variations produces patches that **generalize to held-out prompts** — fixing 4 of 17 problems the base model gets wrong (23.5%) with zero breakage on the 13 it already solves; (7) stacking two patches via XOR is mechanically sound but behaviorally lossy; and (8) a GSM8K safety check on 50 word problems shows no degradation to general math reasoning.
+We validate on [Bonsai 8B](https://huggingface.co/prism-ml/Bonsai-8B-mlx-1bit) (PrismML, 2026), a true 1-bit, 8.2 billion parameter language model. Through eleven experiments: (1) binary MLP weights exhibit massive redundancy; (2) scale-guided bit flips produce **3.88x** more behavioral impact than random flips; (3–4) greedy search yields patches that correct specific calculus failures in free generation; (5) patches trained on few probes memorize rather than generalize; (6) training on diverse probe variations produces patches that **generalize to held-out prompts** — fixing 4 of 17 problems the base model gets wrong (23.5%) with zero breakage on the 13 it already solves; (7) stacking two patches via XOR is mechanically sound but behaviorally lossy; (8) a GSM8K safety check on 50 word problems shows no degradation to general math reasoning; (9) the method ports to NVIDIA GPUs via a custom C++ tool built on PrismML's llama.cpp fork, running **~24x faster** on Modal L40S and recovering 3/4 of the MLX generalization result with an expanded layer set; (10) searching attention Q/K/V/O projections finds mechanically-valid flips but **hurts generalization** — attention weights are too context-bound for XOR patching; and (11) per-group (128-bit) granularity is too fine-grained for mean-fitness search — individual flips produce signal below the noise floor of the control penalty.
 
 \* *Experiments 3–4 produce sub-kilobyte patches (840–864 bytes). The generalization-optimized patch (Experiment 6) is 1.1 KB.*
 
@@ -107,6 +107,19 @@ The properties of XOR patches — kilobyte-scale size, microsecond application, 
 A library of domain patches (math, code, medical, legal), each ~1 KB, stored alongside a 1.15 GB base model. Hot-swappable at inference time with no latency cost — switch from a code specialist to a medical specialist between requests, or even between tokens. A thousand patches adds 1 MB of storage. On a phone.
 
 LoRA cannot do this even on continuous models: adapters are too large to store many (~100 MB each), too slow to swap live (reload weights), and add compute on every forward pass. XOR patches are the model-behavior equivalent of feature flags in software — or binary patches in software distribution.
+
+### NVIDIA GPU Path (GGUF + Modal)
+
+Bankai has two backend implementations: **MLX** (Apple Silicon, via PrismML's MLX fork with 1-bit kernels) and **GGUF** (NVIDIA GPUs, via PrismML's llama.cpp fork). The GGUF path is a custom C++ tool (`tools/bankai_eval.cpp`) built into PrismML's fork that:
+
+1. Loads Bonsai 8B once on a CUDA device (L40S, H100, RTX 4090, etc.)
+2. Exposes a line-protocol interface over stdin/stdout: `PROBE`, `TOKENIZE`, `FLIP_ROW`, `FLIP_GROUP`, `SCALES`, `NUM_ROWS`
+3. Performs weight modifications **entirely in GPU memory** via `ggml_backend_tensor_get/set` — no file reloads, no subprocess restarts
+4. Pipelines probe evaluations through the stdin buffer, so a full 15-probe iteration costs one write + one flush + one read
+
+The Python `GGUFBackend` talks to this tool as a long-running subprocess. A full 300-iteration search on Modal L40S runs in ~3 minutes (vs ~67 minutes on an M3 MacBook Air — roughly **24x speedup**). Experiments 9, 10, and 11 were all run on this path.
+
+**Patch format portability:** A patch file (`patches/calculus_beefy_v1.json` etc.) is just a list of `(layer, proj, row[, group])` tuples. The same JSON can be applied on either backend as long as the target tensor names match.
 
 ### Comparison to Existing Adaptation Methods
 
@@ -238,6 +251,31 @@ Motivated by Experiment 5's finding that 6-probe patches memorize, we tested whe
 **Question:** Does the patch degrade general math reasoning?
 
 **Method:** Run 50 GSM8K word problems with full generation (400 tokens), extract answers via pattern matching ("The answer is [N]"), compare accuracy with and without the Experiment 6 generalized patch.
+
+### Experiment 9: GGUF/CUDA Backend (Beefier Search)
+
+**Question:** Can we port the search to NVIDIA GPUs and use the extra compute to explore a larger search space?
+
+**Method:** Port Bankai to PrismML's llama.cpp fork (Q1_0_g128 CUDA kernels) via a custom C++ tool (`bankai_eval`) that performs in-GPU weight manipulation via `ggml_backend_tensor_get/set`. Run the Experiment 6 search on Modal L40S with an expanded layer set — `[1, 2, 3, 4, 5, 6, 10, 34]` (adds layers 5, 6, 10 which the layer-impact map identified as calculus-sensitive) — and 800 iterations instead of 300.
+
+**Infrastructure:**
+- Python `GGUFBackend` manages a long-running `bankai_eval` subprocess
+- Commands: `TOKENIZE`, `PROBE`, `FLIP_ROW`, `FLIP_GROUP`, `SCALES`, `NUM_ROWS`
+- Weight modifications happen entirely in GPU memory (no file reload, no subprocess restart)
+- Probe evaluations are pipelined through stdin/stdout (batched writes + reads) for ~4x IPC speedup
+- Full pipeline: ~24x faster than M3 MacBook Air (300 iterations in ~3 min vs ~67 min)
+
+### Experiment 10: Attention Projection Search
+
+**Question:** Does searching attention Q/K/V/O projections (in addition to MLP) find useful XOR flips?
+
+**Method:** Same config as Experiment 9 but with `search_projs = ["gate_proj", "up_proj", "q_proj", "k_proj", "v_proj", "o_proj"]`. This is the first exploration of attention-projection XOR flips on a 1-bit LLM. The attention tensors are Q1_0_g128 with shapes `[4096, 4096]` (q/o) and `[4096, 1024]` (k/v, GQA).
+
+### Experiment 11: Per-Group Granularity Search
+
+**Question:** Does 32x finer-grained flipping (128-bit groups instead of 4,096-bit rows) find patches that row-level can't express?
+
+**Method:** Replace `FLIP_ROW` with `FLIP_GROUP(tensor, row, group)` that XORs a single 128-bit block within one row (bytes 2..17 of one Q1_0_g128 block). Search space grows from ~131K rows to ~6.3M groups. 1500 iterations, 8 layers, MLP only. Expected: finer modifications might unlock surgical fixes that row-level cannot express.
 
 ## Results
 
@@ -491,13 +529,76 @@ We ran 50 GSM8K word problems (generation with answer extraction) with and witho
 
 No degradation detected. The patch slightly improved GSM8K accuracy (+3 problems), likely within noise for 50 samples but directionally positive. Note: our GSM8K accuracy (22%) is below Bonsai's reported benchmark (88%) due to differences in evaluation harness (prompt format, answer extraction, generation length). The relative comparison between base and patched is the meaningful signal, not the absolute number.
 
+### Experiment 9: GGUF/CUDA Backend (Beefier Search)
+
+**Search:** 800 iterations on Modal L40S, 8 layers × 2 MLP projections, 60 training / 30 validation probes, seed 42. **424 seconds total** — ~9.5x faster than the original M3 run (4018s).
+
+**Patch statistics:**
+- 73 flips accepted (vs 93 on MLX Exp 6 with a smaller search space)
+- 54 screened out (much higher screen-out rate than the original MLX run, implying the expanded search was more rigorous)
+- Patch size: 876 bytes
+- Layers 5, 6, 10 all contributed accepted flips (they were not in the original search set)
+
+**Training set (60 probes):** 43/60 → 42/60 (2 fixed, 3 broke)
+
+**Validation set (30 held-out probes):** **13/30 → 16/30 (3 fixed, 0 broke)**
+
+| Category | Fixed | Broke |
+|---|---|---|
+| poly_deriv | 1 | 0 |
+| second_deriv | 1 | 0 |
+| integral | 1 | 0 |
+| prime | 0 | 0 |
+| trig | 0 | 0 |
+| exp_deriv | 0 | 0 |
+
+**Finding:** The GGUF format (scale-only Q1_0_g128, 1.125 bpw) is strictly less expressive than MLX (scale+bias, 1.25 bpw), and baseline logit gaps differ between the two (e.g., `Paris vs London` is +6.50 on MLX, +3.54 on GGUF for the same tokens). The GGUF search with expanded layers **recovers 3/4 of the MLX validation result** (3 fixed vs 4) while running at a fraction of the time. Layers 5, 6, 10 contributing to accepted flips confirms the layer-impact map's prediction.
+
+### Experiment 10: Attention Projection Search
+
+**Search:** Same as Experiment 9 but with `search_projs = [gate, up, q, k, v, o]`. 800 iterations, 433 seconds.
+
+**Patch statistics:**
+- 85 flips total — 69 MLP (gate: 37, up: 32), **16 attention** (q: 7, o: 4, k: 3, v: 2)
+- All four attention projection types received accepted flips, confirming the mechanism works on attention weights
+
+**Training set:** 43/60 → 44/60 (2 fixed, 1 broke)
+
+**Validation set:** **13/30 → 13/30 (0 fixed, 0 broke)**
+
+**Finding (negative result):** Attention-projection XOR flips are mechanically functional but **hurt generalization**. Adding the attention search space to the beefier run (Experiment 9) eliminated all 3 held-out validation fixes. Per-category, every validation category regressed from 3 total fixes to 0.
+
+**Interpretation:** Attention weights encode context-specific routing patterns. Flipping rows in attention projections finds modifications that improve training-set fitness (+0.23 mean fitness gain) but those modifications depend on exact prompt structure and don't transfer to novel phrasings. MLP rows, by contrast, encode more abstract representations whose modifications generalize better. **Conclusion: For behavioral patching of 1-bit LLMs, MLP is the right target; attention is too context-bound.** This is the first empirical characterization of attention XOR flips on 1-bit models.
+
+### Experiment 11: Per-Group Granularity Search
+
+**Search:** 1500 iterations on Modal L40S, 8 layers × 2 MLP projections, `granularity="group"`. 755 seconds. Candidate space: **6.3 million groups** (vs ~131K rows in Experiment 9).
+
+**Patch statistics:**
+- **Only 6 flips accepted** (out of 1500 iterations)
+- 331 screened out (most iterations rejected before full eval)
+- 5 of 6 accepts concentrated in layer 34
+- Max fitness reached: **+0.0067** (vs +0.32 for row-level beefy run)
+
+**Training set:** 43/60 → 43/60 (0 fixed, 0 broke)
+
+**Validation set:** 13/30 → 13/30 (0 fixed, 0 broke)
+
+**Finding (negative result):** Per-group flips (128 bits each) are too fine-grained for the current mean-fitness search. Each group-flip produces probe gap changes on the order of 0.001–0.01 — about 10x smaller than row-level flips — and the control degradation penalty (λ=2.0) dominates this tiny signal. The search correctly rejected ~99.6% of candidates and the accepted flips produced no measurable behavioral change.
+
+**Interpretation:** Finer granularity is not free — it needs either (a) a much more sensitive fitness function (e.g., log-probability differences instead of logit gaps), (b) a lower control penalty to let small improvements through, (c) cumulative flipping (accept pairs/triples of groups together to reach a meaningful effect size), or (d) a completely different search algorithm (evolutionary with population, or gradient-free optimization with variance reduction). Naive greedy hill climbing at group granularity is not viable.
+
 ## Limitations
 
 **Evaluation harness limitations.** Our GSM8K accuracy (22%) is well below reported benchmarks, indicating our evaluation setup doesn't match standard methodology. Logit gap probes are fast but don't always predict generation-level outcomes (visible in the 7×8 example). Proper benchmark evaluation with standard harnesses is a next step.
 
 **Greedy search finds local optima.** Population-based evolutionary search with crossover (XOR of XOR patches is a valid patch) could find better solutions in the same search budget.
 
-**Row-level granularity is coarse.** Each row flip modifies 4,096 bits. Per-group (128 bits) or per-bit search could produce more compact patches at higher search cost, and would reduce the interference visible in the 100/4 probe.
+**Row-level granularity is right for mean-fitness search.** Per-group search (Experiment 11) confirmed that naive finer granularity doesn't work: individual 128-bit flips produce signal too small to overcome the control penalty. Finer granularity needs a more sensitive fitness function (log-probability differences) or cumulative flipping (groups of groups).
+
+**Attention projections don't help generalization** (Experiment 10). XOR flips on attention Q/K/V/O produce mechanically-valid modifications that improve training fitness but regress validation. Attention weights appear to encode context-specific routing that overfits to training prompts.
+
+**GGUF format is less expressive than MLX.** Q1_0_g128 stores scale only (1.125 bpw); MLX g128 stores scale + bias (1.25 bpw). The same probe produces different logit gaps on the two formats, and patches found on one don't necessarily transfer. Experiments 3–8 use MLX; 9–11 use GGUF.
 
 **Patch stacking shows interference.** Experiment 7 confirms that stacking is mechanically sound but behaviorally lossy — individual patches partially cancel each other's improvements. Joint optimization would likely outperform naive stacking.
 
@@ -521,23 +622,24 @@ We recommend that any deployment of XOR-patched models include patch provenance 
 
 ## Future Work
 
-- **Evolutionary search** — population-based with crossover (XOR of XOR patches = valid patch) and Hamming-distance-based diversity pressure
-- **Benchmark evaluation** — MMLU subcategories, GSM8K, HumanEval to quantify real accuracy changes
-- **Bit-level and group-level search** — finer granularity for more compact patches
-- **Patch stacking** — empirical composability testing and interference characterization
-- **Cross-model extraction** — XOR between Bonsai variants as naturally occurring patches
-- **Hamming-distance distillation** — minimize bit flips needed to match a teacher model's behavior
-- **Theoretical analysis** — connect patch sparsity to information-theoretic bounds on binary weight redundancy
+- **Sensitive fitness for finer granularity** — per-group (Experiment 11) and per-bit search need fitness signals beyond logit gaps. Log-probability differences, or full-generation KL against a teacher, would preserve the signal that a single group flip produces.
+- **Cumulative group voting** — accept combinations of 2–4 group flips together so the effect size crosses the noise threshold. Equivalent to a two-phase greedy search with a larger basic "step".
+- **Larger training sets (120–240 probes)** — Experiment 9 plateaued on 60 probes. More probe variations per category should push generalization further, and the 24x-faster GGUF pipeline makes this tractable.
+- **Proper benchmark evaluation** — MMLU subcategories, GSM8K, HumanEval with a standard harness. The bankai_eval subprocess can be extended with a `GENERATE` command to produce full answers.
+- **Evolutionary search with crossover** — population-based, XOR-of-XOR-patches as crossover, Hamming distance as diversity pressure. The fast GGUF backend makes ~50-individual populations tractable.
+- **Cross-model extraction** — If PrismML releases a Bonsai variant, the XOR between the two models is itself a patch. Sparse by construction.
+- **Joint-domain search** — Experiment 7 showed naive stacking of math + calculus patches loses improvements. A single search optimizing both domains simultaneously (not as post-hoc union) should outperform stacking.
+- **Attention revisited with per-group** — Experiment 10 showed row-level attention flips overfit. Per-group might find surgical attention modifications that don't, but needs Experiment 11's fitness problems fixed first.
+- **Theoretical analysis** — connect patch sparsity to information-theoretic bounds on binary weight redundancy.
 
 ## Reproducing
 
 ### Requirements
 
-- Apple Silicon Mac (M-series) or compatible MLX environment
-- Python 3.11+
-- PrismML's MLX fork (1-bit kernel support)
+**MLX path (experiments 1–8):** Apple Silicon Mac (M-series), Python 3.11+, PrismML's MLX fork.
+**GGUF/CUDA path (experiments 9–11):** NVIDIA GPU (T4, L40S, H100, etc.) or a Modal account (~$1–2 per search on L40S). Built automatically inside a Modal image.
 
-### Setup
+### Setup (MLX path)
 
 ```bash
 git clone https://github.com/nikshepsvn/bankai.git
@@ -552,26 +654,32 @@ pip install -e ".[dev]"
 huggingface-cli download prism-ml/Bonsai-8B-mlx-1bit --local-dir models/bonsai-8b-mlx
 ```
 
+### Setup (GGUF/Modal path)
+
+```bash
+pip install modal
+python -m modal setup  # one-time browser auth
+```
+
+The Modal experiment scripts (09–11) define their own image — cloning PrismML's llama.cpp fork, building the custom `bankai_eval` tool, and running on a Modal GPU. The first build is ~8 minutes (cached thereafter).
+
 ### Run experiments
 
 ```bash
-# Experiment 1: Random bit flip robustness (~8 min)
-python experiments/01_random_flips.py
+# MLX path (run on Apple Silicon)
+python experiments/01_random_flips.py           # Robustness to random flips (~8 min)
+python experiments/02_logit_steering.py         # Layer impact map (~2 min)
+python experiments/03_patch_search.py           # Arithmetic patch search (~8 min)
+python experiments/04_calculus_patch.py         # Calculus patch with screening (~13 min)
+python experiments/05_variation_testing.py     # Does the patch generalize? (~3 min)
+python experiments/06_generalization_search.py  # 60-probe generalization search (~67 min)
+python experiments/07_patch_stacking.py         # Math + calculus stacking (~3 min)
+python experiments/08_gsm8k_safety.py           # GSM8K safety check (~20 min)
 
-# Experiment 2: Layer impact and scale-guided targeting (~2 min)
-python experiments/02_logit_steering.py
-
-# Experiment 3: Greedy patch search (~8 min)
-python experiments/03_patch_search.py
-
-# Experiment 4: Calculus patch with screening (~13 min)
-python experiments/04_calculus_patch.py
-
-# Experiment 5: Variation testing (~3 min)
-python experiments/05_variation_testing.py
-
-# Experiment 6: Generalization-optimized search (~67 min)
-python experiments/06_generalization_search.py
+# GGUF/Modal path (runs on L40S)
+modal run experiments/09_gguf_beefy_search.py   # 8 layers × 2 projs × 800 iters (~7 min)
+modal run experiments/10_attention_search.py   # + attention projections (~7 min)
+modal run experiments/11_per_group_search.py   # Per-group granularity (~13 min)
 ```
 
 ### Use the toolkit

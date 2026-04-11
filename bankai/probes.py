@@ -50,12 +50,28 @@ KNOWLEDGE_PROBES = [
 
 
 def measure_probes(backend: "Backend", probes: list[Probe]) -> dict[str, float]:
-    """Measure logit gap (correct - wrong) for each probe. Single forward pass each."""
-    gaps = {}
+    """Measure logit gap (correct - wrong) for each probe.
+
+    Uses backend.batch_logit_gaps if available (big speedup for GGUF) and
+    falls back to per-probe calls otherwise.
+    """
+    if not probes:
+        return {}
+
+    precomputed = []
     for probe in probes:
         tokens = backend.encode(probe.prompt)
         c_id = backend.encode_token(probe.correct_token)
         w_id = backend.encode_token(probe.wrong_token)
+        precomputed.append((tokens, c_id, w_id))
+
+    batch_fn = getattr(backend, "batch_logit_gaps", None)
+    if batch_fn is not None:
+        values = batch_fn(precomputed)
+        return {p.name: v for p, v in zip(probes, values)}
+
+    gaps = {}
+    for probe, (tokens, c_id, w_id) in zip(probes, precomputed):
         gaps[probe.name] = backend.logit_gap(tokens, c_id, w_id)
     return gaps
 

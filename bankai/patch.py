@@ -19,10 +19,16 @@ if TYPE_CHECKING:
 
 @dataclass
 class PatchFlip:
-    """A single row-level bit flip."""
+    """A single bit flip.
+
+    If `group` is None, the flip covers an entire row (all 32 groups = 4096
+    sign bits). If `group` is set, the flip covers only one 128-bit group
+    within the row.
+    """
     layer: int
     proj: str
     row: int
+    group: int | None = None
 
 
 @dataclass
@@ -53,7 +59,11 @@ class Patch:
             "description": self.description,
             "base_model": self.base_model,
             "flips": [
-                {"layer": f.layer, "proj": f.proj, "row": f.row}
+                (
+                    {"layer": f.layer, "proj": f.proj, "row": f.row, "group": f.group}
+                    if f.group is not None
+                    else {"layer": f.layer, "proj": f.proj, "row": f.row}
+                )
                 for f in self.flips
             ],
             "stats": {
@@ -81,7 +91,10 @@ class Patch:
 def apply_patch(backend: "Backend", patch: Patch):
     """Apply a patch to a loaded model. Call again to remove (XOR is self-inverse)."""
     for flip in patch.flips:
-        backend.flip_row(flip.layer, flip.proj, flip.row)
+        if flip.group is None:
+            backend.flip_row(flip.layer, flip.proj, flip.row)
+        else:
+            backend.flip_group(flip.layer, flip.proj, flip.row, flip.group)
 
 
 def remove_patch(backend: "Backend", patch: Patch):

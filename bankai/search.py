@@ -35,7 +35,17 @@ def _measure_fast(
     precomputed: list[tuple[list[int], int, int]],
     names: list[str],
 ) -> dict[str, float]:
-    """Measure logit gaps using pre-tokenized probes."""
+    """Measure logit gaps using pre-tokenized probes.
+
+    Uses backend.batch_logit_gaps if available (GGUF backend) for a big
+    speedup by pipelining commands to the subprocess. Falls back to a
+    per-probe loop otherwise (MLX backend).
+    """
+    batch_fn = getattr(backend, "batch_logit_gaps", None)
+    if batch_fn is not None and precomputed:
+        values = batch_fn(precomputed)
+        return dict(zip(names, values))
+
     gaps = {}
     for (tokens, c_id, w_id), name in zip(precomputed, names):
         gaps[name] = backend.logit_gap(tokens, c_id, w_id)
@@ -56,6 +66,7 @@ def greedy_search(
     patch_description: str = "",
     base_model: str = "prism-ml/Bonsai-8B",
     verbose: bool = True,
+    granularity: str = "row",
 ) -> Patch:
     """Greedy hill climbing with screening optimization.
 
@@ -64,6 +75,11 @@ def greedy_search(
 
     fitness_mode: "mean" (default) averages improvement across all target probes.
     "min" uses the worst probe's improvement, preventing overfitting to easy probes.
+
+    granularity: "row" (default) flips all bits in an output row.
+                 "group" flips only one 128-bit group inside a row — 32x more
+                 precise but 32x larger search space. Requires backend.flip_group
+                 to be implemented.
 
     Args:
         backend: A loaded Backend implementation (MLX, GGUF, etc.)
@@ -75,6 +91,14 @@ def greedy_search(
         search_layers = [1, 2, 3, 4, 34]
     if search_projs is None:
         search_projs = ["gate_proj", "up_proj"]
+
+    if granularity not in ("row", "group"):
+        raise ValueError(f"granularity must be 'row' or 'group', got {granularity!r}")
+    if granularity == "group" and not hasattr(backend, "flip_group"):
+        raise RuntimeError(
+            f"Backend {type(backend).__name__} does not implement flip_group; "
+            "cannot use granularity='group'"
+        )
 
     rng = np.random.default_rng(seed)
 
@@ -102,22 +126,43 @@ def greedy_search(
         print(f"Screen probes: {screen_names} (worst baseline gaps)")
 
     # Build candidate pool weighted by scale magnitude
+    # Row granularity: candidate = (layer, proj, row), weight = avg row scale
+    # Group granularity: candidate = (layer, proj, row, group), weight = row scale
     candidates = []
     weights = []
+    groups_per_row = 32  # Q1_0_g128 with cols=4096
+
     for layer_idx in search_layers:
         for proj in search_projs:
             row_scales = backend.get_row_scales(layer_idx, proj)
             n_rows = backend.num_rows(layer_idx, proj)
-            for row in range(n_rows):
-                candidates.append((layer_idx, proj, row))
-                weights.append(row_scales[row])
+            if granularity == "row":
+                for row in range(n_rows):
+                    candidates.append((layer_idx, proj, row))
+                    weights.append(row_scales[row])
+            else:
+                for row in range(n_rows):
+                    for g in range(groups_per_row):
+                        candidates.append((layer_idx, proj, row, g))
+                        weights.append(row_scales[row])
 
     weights = np.array(weights, dtype=np.float64)
     weights /= weights.sum()
 
     if verbose:
-        print(f"Search space: {len(candidates)} rows across {len(search_layers)} layers")
-        print(f"Running {max_iters} iterations...\n")
+        units = "rows" if granularity == "row" else "groups"
+        print(f"Search space: {len(candidates)} {units} across {len(search_layers)} layers")
+        print(f"Running {max_iters} iterations ({granularity}-level)...\n")
+
+    def apply_candidate(key):
+        if granularity == "row":
+            backend.flip_row(*key)
+        else:
+            backend.flip_group(*key)
+
+    def revert_candidate(key):
+        # XOR is self-inverse
+        apply_candidate(key)
 
     # Greedy search with screening
     accepted = []
@@ -141,16 +186,14 @@ def greedy_search(
                 print("  Exhausted candidate pool.")
             break
 
-        layer_idx, proj, row_idx = key
-        backend.flip_row(layer_idx, proj, row_idx)
+        apply_candidate(key)
 
         # Phase 1: screen on worst 2 target probes
         screen_gaps = _measure_fast(backend, screen_pre, screen_names)
         screen_improved = any(screen_gaps[n] > target_baseline[n] for n in screen_names)
 
         if not screen_improved:
-            # Revert — XOR is self-inverse
-            backend.flip_row(layer_idx, proj, row_idx)
+            revert_candidate(key)
             screened_out += 1
             if verbose and (step + 1) % 50 == 0:
                 elapsed = time.time() - t0
@@ -173,16 +216,22 @@ def greedy_search(
         )
 
         if fitness > current_fitness:
-            accepted.append(PatchFlip(layer_idx, proj, row_idx))
+            if granularity == "row":
+                layer_idx, proj, row_idx = key
+                accepted.append(PatchFlip(layer_idx, proj, row_idx))
+                label = f"L{layer_idx}.{proj}[{row_idx}]"
+            else:
+                layer_idx, proj, row_idx, group_idx = key
+                accepted.append(PatchFlip(layer_idx, proj, row_idx, group=group_idx))
+                label = f"L{layer_idx}.{proj}[{row_idx},g{group_idx}]"
             current_fitness = fitness
             if verbose:
                 elapsed = time.time() - t0
                 print(f"  [{step+1:>4}/{max_iters}] ACCEPT  "
-                      f"fitness={fitness:>+.4f}  "
-                      f"L{layer_idx}.{proj}[{row_idx}]  "
+                      f"fitness={fitness:>+.4f}  {label}  "
                       f"({len(accepted)} flips, {elapsed:.0f}s)")
         else:
-            backend.flip_row(layer_idx, proj, row_idx)  # revert
+            revert_candidate(key)
 
     elapsed = time.time() - t0
     if verbose:

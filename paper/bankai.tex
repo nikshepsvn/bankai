@@ -38,7 +38,7 @@ bitmasks that modify model weights in-place with a single bitwise operation,
 incur zero inference overhead, and compress to around one kilobyte.
 
 We validate on Bonsai~8B (PrismML, 2026), a true 1-bit, 8.2~billion
-parameter language model. Through eight experiments, we demonstrate that:
+parameter language model. Through eleven experiments, we demonstrate that:
 (1)~binary MLP weights exhibit massive redundancy;
 (2)~scale-guided bit flips produce $3.88\times$ more behavioral impact
 than random flips;
@@ -196,6 +196,39 @@ the correct answer. We use this as a fast proxy for behavioral change,
 noting that logit improvement does not always translate to generation
 improvement (see Section~\ref{sec:limitations}).
 
+\subsection{Backends: MLX and GGUF/CUDA}
+
+Bankai has two independent backend implementations:
+
+\begin{itemize}[nosep]
+  \item \textbf{MLX} (Apple Silicon): uses PrismML's MLX fork with
+    1-bit kernels. Implements \texttt{flip\_row} as a bitwise XOR on
+    packed \texttt{uint32} weight tensors, followed by
+    \texttt{mx.eval()} to propagate the modification.
+  \item \textbf{GGUF/CUDA} (NVIDIA GPUs): uses a custom C++ tool,
+    \texttt{bankai\_eval.cpp}, built against PrismML's llama.cpp fork.
+    The tool loads Bonsai~8B once and exposes a line protocol on
+    stdin/stdout (\texttt{PROBE}, \texttt{TOKENIZE}, \texttt{FLIP\_ROW},
+    \texttt{FLIP\_GROUP}, \texttt{SCALES}, \texttt{NUM\_ROWS}).
+    Weight modifications happen entirely in GPU memory via
+    \texttt{ggml\_backend\_tensor\_get}/\texttt{set} on the
+    Q1\_0\_g128 tensor data — no file reloading, no subprocess
+    restart. The Python \texttt{GGUFBackend} wraps this subprocess
+    and pipelines probe commands through the stdin buffer, so a full
+    multi-probe iteration costs one write, one flush, and one batched
+    read. This achieves approximately $24\times$ speedup over the MLX
+    path on Apple M3: a 300-iteration search runs in $\sim$3~min
+    on Modal L40S vs $\sim$67~min on M3 MacBook Air.
+\end{itemize}
+
+Patch files (JSON lists of \texttt{(layer, proj, row[, group])}
+tuples) are portable between the two backends as long as the tensor
+names match. The MLX and GGUF versions of Bonsai differ in
+quantization format, however (MLX uses scale + bias per 128-weight
+group at 1.25~bpw; GGUF uses scale-only at 1.125~bpw), so identical
+patches can produce different logit gaps on the two formats ---
+this is discussed in Experiment~9.
+
 \subsection{Experiment~1: Random Bit Flip Robustness}
 
 We flip $N$ random bits across all MLP weight tensors (5.4B~bits total)
@@ -261,6 +294,31 @@ Run 50~GSM8K word problems with full generation (400~tokens) and answer
 extraction. Compare accuracy with and without the Experiment~6
 generalized patch to check for collateral damage on general math
 reasoning.
+
+\subsection{Experiment~9: GGUF/CUDA Backend (Beefier Search)}
+
+Port Bankai to PrismML's llama.cpp fork (Q1\_0\_g128 CUDA kernels) via
+a custom C++ tool, \texttt{bankai\_eval}, that performs in-GPU weight
+manipulation through \texttt{ggml\_backend\_tensor\_get}/\texttt{set}.
+Run the Experiment~6 search on Modal L40S with an expanded layer set
+$[1, 2, 3, 4, 5, 6, 10, 34]$ (adding layers 5, 6, 10 which the
+Experiment~2 layer-impact map identified as calculus-sensitive) and
+800 iterations instead of 300.
+
+\subsection{Experiment~10: Attention Projection Search}
+
+Same configuration as Experiment~9 but with
+\texttt{search\_projs = [gate, up, q, k, v, o]} — the search now
+considers attention Q/K/V/O projections in addition to MLP. First
+exploration of attention-projection XOR flips on a 1-bit LLM.
+
+\subsection{Experiment~11: Per-Group Granularity Search}
+
+Replace row-level flipping with group-level: each ``flip'' XORs only
+the 128 sign bits of one 18-byte Q1\_0\_g128 block instead of all
+4,096 sign bits of a full row. Search space grows $32\times$ (from
+$\sim$131K rows to $\sim$6.3M groups). 1500 iterations, same 8 layers
+and 2 MLP projections.
 
 % ============================================================
 \section{Results}
@@ -450,6 +508,123 @@ likely within noise for $n=50$ but directionally positive. Our GSM8K accuracy (2
 due to evaluation harness differences; the relative comparison is the
 meaningful signal.
 
+\subsection{Experiment~9: GGUF/CUDA Backend}
+
+\textbf{Search:} 800 iterations on Modal L40S, 8 layers
+$[1,2,3,4,5,6,10,34]$ × 2 MLP projections. 424~seconds total —
+approximately $9.5\times$ faster than the original M3 run (4018~s).
+
+\textbf{Patch:} 73 flips (54 screened out), 876~bytes. Layers 5, 6,
+and 10 all contributed accepted flips, confirming the
+Experiment~2 layer-impact map's prediction.
+
+\begin{table}[h]
+\centering
+\caption{Experiment~9 results (Modal L40S, GGUF backend).}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Set & Baseline & Patched \\
+\midrule
+Training (60 probes) & 43/60 & 42/60 \\
+\textbf{Validation (30 held-out)} & \textbf{13/30} & \textbf{16/30} \\
+Validation fixed & --- & \textbf{3} \\
+Validation broke & --- & \textbf{0} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Finding:} The GGUF format (scale-only Q1\_0\_g128, 1.125~bpw)
+is strictly less expressive than MLX (scale+bias, 1.25~bpw), and
+baseline logit gaps differ between formats (for example, Paris-vs-London
+is $+6.50$ on MLX vs $+3.54$ on GGUF for identical tokens). Despite the
+format difference, the GGUF search with expanded layers recovers
+$3/4$ of the MLX validation result (3~fixed vs 4) while running in a
+fraction of the time. This establishes the GGUF/CUDA path as a viable
+production route.
+
+\subsection{Experiment~10: Attention Projection Search}
+
+\textbf{Search:} Same as Experiment~9 with six projections per layer
+(gate, up, q, k, v, o). 800~iterations, 433~seconds.
+
+\textbf{Patch:} 85 flips total --- 69 MLP (gate: 37, up: 32) and
+\textbf{16 attention} (q: 7, o: 4, k: 3, v: 2). All four attention
+projection types received accepted flips, confirming the mechanism
+is mechanically valid on attention weights.
+
+\begin{table}[h]
+\centering
+\caption{Experiment~10 vs Experiment~9 — adding attention to the search.}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+ & Exp~9 (MLP only) & Exp~10 (+ attention) \\
+\midrule
+Training fixed/broke & 2 / 3 & 2 / 1 \\
+\textbf{Validation fixed} & \textbf{3} & \textbf{0} \\
+Validation broke & 0 & 0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Finding (negative result):} Attention flips are mechanically
+functional but \textbf{hurt generalization}. Adding the attention
+search space to Experiment~9 eliminated all three held-out validation
+fixes. Every probe category that had improved in Experiment~9
+regressed to zero fixes in Experiment~10.
+
+\textbf{Interpretation:} Attention weights encode context-specific
+routing patterns. Flipping rows of attention projections finds
+modifications that improve training-set fitness but depend on exact
+prompt structure and don't transfer to novel phrasings. MLP weights,
+by contrast, encode more abstract representations whose modifications
+generalize. \textbf{For behavioral patching of 1-bit LLMs, MLP is the
+right target; attention is too context-bound.} This is, to our
+knowledge, the first empirical characterization of attention XOR
+flips on a 1-bit model.
+
+\subsection{Experiment~11: Per-Group Granularity Search}
+
+\textbf{Search:} 1500 iterations, \texttt{granularity="group"},
+755~seconds. Candidate space: 6.3~million group-flips (vs $\sim$131K
+row-flips in Experiment~9).
+
+\textbf{Patch:} \textbf{Only 6 flips accepted} (of 1500 iterations,
+$\sim$0.4\% accept rate). 331 screened out. Max fitness reached:
+$+0.0067$ (vs $+0.32$ for the row-level beefy run in Experiment~9 ---
+two orders of magnitude smaller).
+
+\begin{table}[h]
+\centering
+\caption{Experiment~11: per-group flips produce no measurable behavior change.}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Set & Baseline & Patched \\
+\midrule
+Training (60 probes) & 43/60 & 43/60 \\
+Validation (30 held-out) & 13/30 & 13/30 \\
+Fixed / broke & --- & 0 / 0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Finding (negative result):} Per-group flipping is too
+fine-grained for the current mean-fitness search. Each 128-bit flip
+produces probe gap changes on the order of $0.001$--$0.01$ ---
+approximately $10\times$ smaller than row-level flips --- and the
+control-degradation penalty ($\lambda=2.0$) dominates at this scale.
+The search correctly rejected $\sim$99.6\% of candidates, and the
+six accepted flips produced no measurable behavioral change.
+
+\textbf{Interpretation:} Finer granularity is not free. It requires
+either (a)~a more sensitive fitness function (log-probability
+differences instead of logit gaps), (b)~a lower control penalty that
+allows small improvements through, (c)~cumulative flipping (accepting
+pairs or triples of groups together to cross the noise threshold), or
+(d)~a different search algorithm (evolutionary with population-level
+moves, or gradient-free optimization with variance reduction). Naive
+greedy hill climbing at group granularity is not viable for this
+problem.
+
 % ============================================================
 \section{Limitations}
 \label{sec:limitations}
@@ -464,8 +639,24 @@ harnesses is a next step.
 search with crossover (XOR of XOR patches is a valid patch) could find
 better solutions.
 
-\textbf{Row-level granularity is coarse.} Each flip modifies 4,096~bits.
-Per-group (128~bits) or per-bit search could produce more precise patches.
+\textbf{Row-level granularity is the right operating point for mean-fitness
+search.} Experiment~11 confirmed that naive per-group search fails:
+individual 128-bit flips produce probe-gap changes an order of magnitude
+smaller than row-level flips, and the control-degradation penalty dominates
+this tiny signal. Finer granularity requires a more sensitive fitness
+function or cumulative flipping (accepting groups of groups together).
+
+\textbf{Attention projections do not help generalization.} Experiment~10
+showed that XOR flips on attention Q/K/V/O are mechanically valid but
+encode context-specific routing patterns that overfit to training probes
+and regress on held-out ones. MLP is the right target for behavioral
+patching.
+
+\textbf{GGUF and MLX versions of Bonsai are not the same model.} GGUF
+Q1\_0\_g128 is scale-only (1.125~bpw) while MLX is scale+bias (1.25~bpw),
+making GGUF strictly less expressive. Identical probe prompts produce
+different logit gaps on the two formats, and patches found on one do
+not necessarily transfer. Experiments 3--8 use MLX; 9--11 use GGUF.
 
 \textbf{Patch stacking shows interference.} Experiment~7 confirms
 stacking is mechanically sound but behaviorally lossy---individual
@@ -516,11 +707,15 @@ modifications reduce to sparse XOR bitmasks that are orders of magnitude
 smaller than existing adapters, incur zero inference overhead, and can be
 applied and reverted in microseconds.
 
-Through eight experiments on Bonsai~8B, we characterized the method's
+Through eleven experiments on Bonsai~8B, we characterized the method's
 capabilities and limitations: targeted corrections work reliably,
-generalization requires diverse training signal, and the overall approach
-represents a new point in the adaptation design space---one that is
-uniquely enabled by true binary model architectures.
+generalization requires diverse training signal, row-level MLP flips
+are the right operating point (finer granularity fails at naive greedy
+search; attention projections overfit), and the approach ports to
+NVIDIA GPUs via a custom llama.cpp tool that runs $\sim$24$\times$ faster
+than the Apple Silicon baseline. The method represents a new point in
+the adaptation design space---one that is uniquely enabled by true
+binary model architectures.
 
 Code, patches, and all experiments are available at
 \url{https://github.com/nikshepsvn/bankai}.
