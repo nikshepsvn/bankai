@@ -16,7 +16,7 @@ import numpy as np
 
 from bankai.backends.base import Backend
 from bankai.patch import Patch, PatchFlip
-from bankai.probes import Probe, compute_fitness, compute_fitness_min
+from bankai.probes import Probe, compute_fitness, compute_fitness_min, get_metric
 
 
 def _pre_tokenize(backend: Backend, probes: list[Probe]) -> list[tuple[list[int], int, int]]:
@@ -61,6 +61,7 @@ def greedy_search(
     max_iters: int = 200,
     control_penalty: float = 2.0,
     fitness_mode: str = "mean",
+    metric: str = "token_gap",
     seed: int = 42,
     patch_name: str = "untitled",
     patch_description: str = "",
@@ -102,15 +103,19 @@ def greedy_search(
 
     rng = np.random.default_rng(seed)
 
-    # Pre-tokenize all probes once
-    target_pre = _pre_tokenize(backend, target_probes)
-    control_pre = _pre_tokenize(backend, control_probes)
+    # Pre-tokenize all probes once, under the selected metric
+    prepare_fn, measure_fn = get_metric(metric)
+    target_pre = prepare_fn(backend, target_probes)
+    control_pre = prepare_fn(backend, control_probes)
     target_names = [p.name for p in target_probes]
     control_names = [p.name for p in control_probes]
 
+    def _measure(pre, names):
+        return measure_fn(backend, pre, names)
+
     # Measure baselines
-    target_baseline = _measure_fast(backend, target_pre, target_names)
-    control_baseline = _measure_fast(backend, control_pre, control_names)
+    target_baseline = _measure(target_pre, target_names)
+    control_baseline = _measure(control_pre, control_names)
 
     if verbose:
         print(f"Baseline target gaps: { {k: f'{v:+.3f}' for k, v in target_baseline.items()} }")
@@ -189,7 +194,7 @@ def greedy_search(
         apply_candidate(key)
 
         # Phase 1: screen on worst 2 target probes
-        screen_gaps = _measure_fast(backend, screen_pre, screen_names)
+        screen_gaps = _measure(screen_pre, screen_names)
         screen_improved = any(screen_gaps[n] > target_baseline[n] for n in screen_names)
 
         if not screen_improved:
@@ -206,9 +211,9 @@ def greedy_search(
         remaining_idx = [i for i in range(len(target_pre)) if i not in screen_indices]
         remaining_pre = [target_pre[i] for i in remaining_idx]
         remaining_names = [target_names[i] for i in remaining_idx]
-        remaining_gaps = _measure_fast(backend, remaining_pre, remaining_names)
+        remaining_gaps = _measure(remaining_pre, remaining_names)
         target_gaps = {**screen_gaps, **remaining_gaps}
-        control_gaps = _measure_fast(backend, control_pre, control_names)
+        control_gaps = _measure(control_pre, control_names)
 
         fitness_fn = compute_fitness_min if fitness_mode == "min" else compute_fitness
         fitness = fitness_fn(
@@ -246,6 +251,7 @@ def greedy_search(
         flips=accepted,
         metadata={
             "search_algorithm": f"greedy_hill_climbing_screened_{fitness_mode}",
+            "metric": metric,
             "backend": type(backend).__name__,
             "search_layers": search_layers,
             "search_projs": search_projs,

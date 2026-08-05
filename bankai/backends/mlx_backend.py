@@ -20,9 +20,10 @@ def _get_module(model, path: str):
 class MLXBackend(Backend):
     """MLX + PrismML 1-bit kernels. Apple Silicon only."""
 
-    def __init__(self):
+    def __init__(self, batch_size: int = 8):
         self.model = None
         self.tokenizer = None
+        self.batch_size = batch_size
 
     def load(self, model_path: str) -> None:
         from mlx_lm import load as mlx_load
@@ -55,6 +56,50 @@ class MLXBackend(Backend):
         last = logits[0, -1, :]
         mx.eval(last)
         return float(last[correct_id].item() - last[wrong_id].item())
+
+    def seq_logprobs(self, items: list[tuple[list[int], list[int]]]) -> list[float]:
+        """Batched teacher-forced continuation scoring.
+
+        Sequences are bucketed by length and padded to a fixed batch shape so the
+        matmul reduction order is identical on every call — without that, batched
+        1-bit kernels jitter by ~0.01 logits between calls and the search would
+        read that noise as fitness.
+        """
+        if not items:
+            return []
+
+        scores = [0.0] * len(items)
+        order = sorted(range(len(items)), key=lambda i: len(items[i][0]) + len(items[i][1]))
+        pad_id = 0
+
+        for start in range(0, len(order), self.batch_size):
+            idxs = order[start:start + self.batch_size]
+            seqs = [items[i][0] + items[i][1] for i in idxs]
+            max_len = max(len(s) for s in seqs)
+
+            padded, targets, masks = [], [], []
+            for i, seq in zip(idxs, seqs):
+                n_prompt, n_cont = len(items[i][0]), len(items[i][1])
+                padded.append(seq + [pad_id] * (max_len - len(seq)))
+                # Position p predicts token p+1, so score positions
+                # [n_prompt-1, n_prompt+n_cont-2].
+                tgt = [(seq + [pad_id] * (max_len - len(seq)))[p + 1] for p in range(max_len - 1)]
+                msk = [1.0 if (n_prompt - 1) <= p <= (n_prompt + n_cont - 2) else 0.0
+                       for p in range(max_len - 1)]
+                targets.append(tgt)
+                masks.append(msk)
+
+            logits = self.model(mx.array(padded))[:, :-1, :]
+            tgt_arr = mx.array(targets)[:, :, None]
+            chosen = mx.take_along_axis(logits, tgt_arr, axis=-1)[:, :, 0]
+            logprobs = chosen - mx.logsumexp(logits, axis=-1)
+            totals = mx.sum(logprobs * mx.array(masks), axis=1)
+            mx.eval(totals)
+
+            for slot, i in enumerate(idxs):
+                scores[i] = float(totals[slot].item())
+
+        return scores
 
     def flip_row(self, layer: int, proj: str, row: int) -> None:
         path = f"model.layers.{layer}.mlp.{proj}"
