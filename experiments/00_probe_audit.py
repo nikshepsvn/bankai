@@ -91,6 +91,15 @@ def main():
     print("=" * 66)
     print(f"Probe audit — {args.probe_set}")
     print("=" * 66)
+    # Both defects are properties of the token_gap metric, which reduces an answer
+    # to one token id. A set scored with seq_logprob compares whole strings, so
+    # these columns say nothing about it — exp12/exp13 will show high counts here
+    # and be perfectly sound.
+    scored_with_token_gap = args.probe_set in ("exp6", "builtin")
+    if not scored_with_token_gap:
+        print("NOTE: this probe set is scored with seq_logprob, which compares whole")
+        print("      answer strings. The columns below describe the token_gap metric")
+        print("      only and do not indicate a defect in this set.\n")
     print(f"{'set':16s} {'n':>4s} {'dead':>5s} {'offset':>7s}")
     total_dead = []
     for label, probes in sets.items():
@@ -98,7 +107,7 @@ def main():
         print(f"{label:16s} {r['n']:4d} {len(r['dead']):5d} {len(r['offset']):7d}")
         total_dead += [(label, p) for p in r["dead"]]
 
-    if total_dead:
+    if total_dead and scored_with_token_gap:
         print("\nDead probes — gap is identically 0.0 for any patch:")
         for label, p in total_dead:
             print(f"  [{label}] {p.name:14s} {p.correct_token!r} vs {p.wrong_token!r}")

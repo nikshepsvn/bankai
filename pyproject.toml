@@ -10,6 +10,7 @@ requires-python = ">=3.11"
 dependencies = [
     "mlx-lm>=0.20",
     "numpy>=2.0",
+    "transformers>=4.40",
 ]
 
 [project.optional-dependencies]

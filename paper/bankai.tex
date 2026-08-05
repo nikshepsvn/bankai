@@ -38,7 +38,7 @@ bitmasks that modify model weights in-place with a single bitwise operation,
 incur zero inference overhead, and compress to around one kilobyte.
 
 We validate on Bonsai~8B (PrismML, 2026), a true 1-bit, 8.2~billion
-parameter language model. Through eleven experiments, we demonstrate that:
+parameter language model. Through fourteen experiments, we demonstrate that:
 (1)~binary MLP weights exhibit massive redundancy;
 (2)~scale-guided bit flips produce $3.88\times$ more behavioral impact
 than random flips;
@@ -46,9 +46,11 @@ than random flips;
 in free generation;
 (5)~patches trained on few probes memorize rather than generalize; and
 (6)~training on diverse probe variations produces patches that
-\textbf{generalize to held-out prompts}---fixing 4~of~17 problems
-the base model gets wrong (23.5\%) with zero breakage on the 13 it
-already solves.
+\textbf{generalize to held-out prompts}---originally reported as fixing
+4~of~17 problems (23.5\%), a figure since corrected. Measured soundly that
+patch is net negative; the corrected search (Experiment~12) fixes
+\textbf{5 of the 16 held-out problems the base model gets wrong (31\%) with
+zero breakage}, verified in free generation.
 
 \medskip
 \noindent\textbf{Correction to this version.} The Experiment~6 figure quoted
