@@ -38,7 +38,7 @@ bitmasks that modify model weights in-place with a single bitwise operation,
 incur zero inference overhead, and compress to around one kilobyte.
 
 We validate on Bonsai~8B (PrismML, 2026), a true 1-bit, 8.2~billion
-parameter language model. Through eight experiments, we demonstrate that:
+parameter language model. Through fourteen experiments, we demonstrate that:
 (1)~binary MLP weights exhibit massive redundancy;
 (2)~scale-guided bit flips produce $3.88\times$ more behavioral impact
 than random flips;
@@ -46,9 +46,19 @@ than random flips;
 in free generation;
 (5)~patches trained on few probes memorize rather than generalize; and
 (6)~training on diverse probe variations produces patches that
-\textbf{generalize to held-out prompts}---fixing 4~of~17 problems
-the base model gets wrong (23.5\%) with zero breakage on the 13 it
-already solves.
+\textbf{generalize to held-out prompts}---originally reported as fixing
+4~of~17 problems (23.5\%), a figure since corrected. Measured soundly that
+patch is net negative; the corrected search (Experiment~12) fixes
+\textbf{5 of the 16 held-out problems the base model gets wrong (31\%) with
+zero breakage}, verified in free generation.
+
+\medskip
+\noindent\textbf{Correction to this version.} The Experiment~6 figure quoted
+above (4~of~17, 23.5\%) is superseded. An audit prompted by an independent
+reproduction found three defects in the probe measurement; under corrected
+scoring the same patch fixes \textbf{2}~held-out problems with zero breakage,
+confirmed at the generation level rather than by logit gaps. The central claim
+is unaffected. See Section~\ref{sec:errata}.
 \end{abstract}
 
 % ============================================================
@@ -186,15 +196,66 @@ a true 1-bit, 8.2B~parameter model based on the Qwen3 architecture
 as \texttt{uint32} arrays with 1-bit group quantization
 (\texttt{group\_size=128}). Experiments were run on Apple~M3 (24~GB).
 
-\subsection{Logit Gap Probes}
+\subsection{Probe Metrics}
 
-We measure behavioral change via \textbf{logit gap probes}: pairs of
-(correct\_token, wrong\_token) following a deterministic prompt. The
+Experiments~1--11 use the \texttt{token\_gap} metric described first; it has
+defects documented in Section~\ref{sec:errata}. Experiment~12 uses
+\texttt{seq\_logprob} for search and greedy generation for reporting.
+
+\paragraph{\texttt{token\_gap} (Experiments 1--11).}
+Pairs of (correct\_token, wrong\_token) following a deterministic prompt. The
 logit gap $G = \text{logit}(\text{correct}) - \text{logit}(\text{wrong})$
 is a single-forward-pass measurement: positive means the model prefers
-the correct answer. We use this as a fast proxy for behavioral change,
+the correct answer. Answer strings are reduced to a single token id by keeping
+their last subtoken. We used this as a fast proxy for behavioral change,
 noting that logit improvement does not always translate to generation
 improvement (see Section~\ref{sec:limitations}).
+
+\paragraph{\texttt{seq\_logprob} (Experiment 12).}
+The gap is the difference in summed teacher-forced log-probability between the
+full correct answer string and a plausible per-probe distractor, with
+continuations tokenized in the context of their prompt. Multi-token answers,
+leading spaces, and same-suffix collisions are all handled correctly. This is
+used as search fitness only.
+
+\paragraph{Greedy generation (Experiment 12, headline).}
+What the model actually emits under greedy decoding, compared against the
+expected answer and any accepted alternate renderings. It depends on no
+distractor token, so it cannot be satisfied by shifting probability between two
+hardcoded ids. Logit gaps are a search signal; generation is the result.
+
+\subsection{Backends: MLX and GGUF/CUDA}
+
+Bankai has two independent backend implementations:
+
+\begin{itemize}[nosep]
+  \item \textbf{MLX} (Apple Silicon): uses PrismML's MLX fork with
+    1-bit kernels. Implements \texttt{flip\_row} as a bitwise XOR on
+    packed \texttt{uint32} weight tensors, followed by
+    \texttt{mx.eval()} to propagate the modification.
+  \item \textbf{GGUF/CUDA} (NVIDIA GPUs): uses a custom C++ tool,
+    \texttt{bankai\_eval.cpp}, built against PrismML's llama.cpp fork.
+    The tool loads Bonsai~8B once and exposes a line protocol on
+    stdin/stdout (\texttt{PROBE}, \texttt{TOKENIZE}, \texttt{FLIP\_ROW},
+    \texttt{FLIP\_GROUP}, \texttt{SCALES}, \texttt{NUM\_ROWS}).
+    Weight modifications happen entirely in GPU memory via
+    \texttt{ggml\_backend\_tensor\_get}/\texttt{set} on the
+    Q1\_0\_g128 tensor data --- no file reloading, no subprocess
+    restart. The Python \texttt{GGUFBackend} wraps this subprocess
+    and pipelines probe commands through the stdin buffer, so a full
+    multi-probe iteration costs one write, one flush, and one batched
+    read. This achieves approximately $24\times$ speedup over the MLX
+    path on Apple M3: a 300-iteration search runs in $\sim$3~min
+    on Modal L40S vs $\sim$67~min on M3 MacBook Air.
+\end{itemize}
+
+Patch files (JSON lists of \texttt{(layer, proj, row[, group])}
+tuples) are portable between the two backends as long as the tensor
+names match. The MLX and GGUF versions of Bonsai differ in
+quantization format, however (MLX uses scale + bias per 128-weight
+group at 1.25~bpw; GGUF uses scale-only at 1.125~bpw), so identical
+patches can produce different logit gaps on the two formats ---
+this is discussed in Experiment~9.
 
 \subsection{Experiment~1: Random Bit Flip Robustness}
 
@@ -261,6 +322,31 @@ Run 50~GSM8K word problems with full generation (400~tokens) and answer
 extraction. Compare accuracy with and without the Experiment~6
 generalized patch to check for collateral damage on general math
 reasoning.
+
+\subsection{Experiment~9: GGUF/CUDA Backend (Beefier Search)}
+
+Port Bankai to PrismML's llama.cpp fork (Q1\_0\_g128 CUDA kernels) via
+a custom C++ tool, \texttt{bankai\_eval}, that performs in-GPU weight
+manipulation through \texttt{ggml\_backend\_tensor\_get}/\texttt{set}.
+Run the Experiment~6 search on Modal L40S with an expanded layer set
+$[1, 2, 3, 4, 5, 6, 10, 34]$ (adding layers 5, 6, 10 which the
+Experiment~2 layer-impact map identified as calculus-sensitive) and
+800 iterations instead of 300.
+
+\subsection{Experiment~10: Attention Projection Search}
+
+Same configuration as Experiment~9 but with
+\texttt{search\_projs = [gate, up, q, k, v, o]} --- the search now
+considers attention Q/K/V/O projections in addition to MLP. First
+exploration of attention-projection XOR flips on a 1-bit LLM.
+
+\subsection{Experiment~11: Per-Group Granularity Search}
+
+Replace row-level flipping with group-level: each ``flip'' XORs only
+the 128 sign bits of one 18-byte Q1\_0\_g128 block instead of all
+4,096 sign bits of a full row. Search space grows $32\times$ (from
+$\sim$131K rows to $\sim$6.3M groups). 1500 iterations, same 8 layers
+and 2 MLP projections.
 
 % ============================================================
 \section{Results}
@@ -347,6 +433,15 @@ No degradation on 5~measured control probes.
 
 \subsection{Experiment~5: Variation Testing (Negative Result)}
 
+\noindent\fbox{\begin{minipage}{0.96\linewidth}
+\textbf{Superseded---and understated.} 7 of these 90 variation probes are dead
+under \texttt{token\_gap} (Section~\ref{sec:errata}). Rerun under corrected
+scoring (Section~\ref{sec:exp13}), this patch breaks \textbf{15} probes rather
+than 5, taking accuracy from 49/90 to 36/90. The conclusion below is correct and
+in fact too generous. Numbers left unmodified as the published record.
+\end{minipage}}
+
+
 The Experiment~4 patch was tested on 90~novel variations (15~per
 category). Sign-flip analysis:
 
@@ -374,6 +469,15 @@ than shifting capabilities. All 5~broken probes had borderline baseline
 gaps ($< 1.2$).
 
 \subsection{Experiment~6: Generalization-Optimized Search}
+
+\noindent\fbox{\begin{minipage}{0.96\linewidth}
+\textbf{Superseded.} The fix counts in this subsection are inflated by probe
+measurement defects (Section~\ref{sec:errata}). Under corrected scoring the same
+patch fixes \textbf{2} held-out problems, not 4, with zero breakage; three of the
+four ``fixes'' were already correct at baseline. Numbers are left unmodified as
+the published record.
+\end{minipage}}
+
 
 Motivated by Experiment~5's memorization finding, we trained on
 60~probes (10~per category with diverse phrasings) and validated on
@@ -450,9 +554,393 @@ likely within noise for $n=50$ but directionally positive. Our GSM8K accuracy (2
 due to evaluation harness differences; the relative comparison is the
 meaningful signal.
 
+\subsection{Experiment~9: GGUF/CUDA Backend}
+
+\textbf{Search:} 800 iterations on Modal L40S, 8 layers
+$[1,2,3,4,5,6,10,34]$ $\times$ 2 MLP projections. 424~seconds total ---
+approximately $9.5\times$ faster than the original M3 run (4018~s).
+
+\textbf{Patch:} 73 flips (54 screened out), 876~bytes. Layers 5, 6,
+and 10 all contributed accepted flips, confirming the
+Experiment~2 layer-impact map's prediction.
+
+\begin{table}[h]
+\centering
+\caption{Experiment~9 results (Modal L40S, GGUF backend).}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Set & Baseline & Patched \\
+\midrule
+Training (60 probes) & 43/60 & 42/60 \\
+\textbf{Validation (30 held-out)} & \textbf{13/30} & \textbf{16/30} \\
+Validation fixed & --- & \textbf{3} \\
+Validation broke & --- & \textbf{0} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Finding:} The GGUF format (scale-only Q1\_0\_g128, 1.125~bpw)
+is strictly less expressive than MLX (scale+bias, 1.25~bpw), and
+baseline logit gaps differ between formats (for example, Paris-vs-London
+is $+6.50$ on MLX vs $+3.54$ on GGUF for identical tokens). Despite the
+format difference, the GGUF search with expanded layers recovers
+$3/4$ of the MLX validation result (3~fixed vs 4) while running in a
+fraction of the time. This establishes the GGUF/CUDA path as a viable
+production route.
+
+\subsection{Experiment~10: Attention Projection Search}
+
+\textbf{Search:} Same as Experiment~9 with six projections per layer
+(gate, up, q, k, v, o). 800~iterations, 433~seconds.
+
+\textbf{Patch:} 85 flips total --- 69 MLP (gate: 37, up: 32) and
+\textbf{16 attention} (q: 7, o: 4, k: 3, v: 2). All four attention
+projection types received accepted flips, confirming the mechanism
+is mechanically valid on attention weights.
+
+\begin{table}[h]
+\centering
+\caption{Experiment~10 vs Experiment~9 --- adding attention to the search.}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+ & Exp~9 (MLP only) & Exp~10 (+ attention) \\
+\midrule
+Training fixed/broke & 2 / 3 & 2 / 1 \\
+\textbf{Validation fixed} & \textbf{3} & \textbf{0} \\
+Validation broke & 0 & 0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Finding (negative result):} Attention flips are mechanically
+functional but \textbf{hurt generalization}. Adding the attention
+search space to Experiment~9 eliminated all three held-out validation
+fixes. Every probe category that had improved in Experiment~9
+regressed to zero fixes in Experiment~10.
+
+\textbf{Interpretation:} Attention weights encode context-specific
+routing patterns. Flipping rows of attention projections finds
+modifications that improve training-set fitness but depend on exact
+prompt structure and don't transfer to novel phrasings. MLP weights,
+by contrast, encode more abstract representations whose modifications
+generalize. \textbf{For behavioral patching of 1-bit LLMs, MLP is the
+right target; attention is too context-bound.} This is, to our
+knowledge, the first empirical characterization of attention XOR
+flips on a 1-bit model.
+
+\subsection{Experiment~11: Per-Group Granularity Search}
+
+\textbf{Search:} 1500 iterations, \texttt{granularity="group"},
+755~seconds. Candidate space: 6.3~million group-flips (vs $\sim$131K
+row-flips in Experiment~9).
+
+\textbf{Patch:} \textbf{Only 6 flips accepted} (of 1500 iterations,
+$\sim$0.4\% accept rate). 331 screened out. Max fitness reached:
+$+0.0067$ (vs $+0.32$ for the row-level beefy run in Experiment~9 ---
+two orders of magnitude smaller).
+
+\begin{table}[h]
+\centering
+\caption{Experiment~11: per-group flips produce no measurable behavior change.}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Set & Baseline & Patched \\
+\midrule
+Training (60 probes) & 43/60 & 43/60 \\
+Validation (30 held-out) & 13/30 & 13/30 \\
+Fixed / broke & --- & 0 / 0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Finding (negative result):} Per-group flipping is too
+fine-grained for the current mean-fitness search. Each 128-bit flip
+produces probe gap changes on the order of $0.001$--$0.01$ ---
+approximately $10\times$ smaller than row-level flips --- and the
+control-degradation penalty ($\lambda=2.0$) dominates at this scale.
+The search correctly rejected $\sim$99.6\% of candidates, and the
+six accepted flips produced no measurable behavioral change.
+
+\textbf{Interpretation:} Finer granularity is not free. It requires
+either (a)~a more sensitive fitness function (log-probability
+differences instead of logit gaps), (b)~a lower control penalty that
+allows small improvements through, (c)~cumulative flipping (accepting
+pairs or triples of groups together to cross the noise threshold), or
+(d)~a different search algorithm (evolutionary with population-level
+moves, or gradient-free optimization with variance reduction). Naive
+greedy hill climbing at group granularity is not viable for this
+problem.
+
 % ============================================================
+\section{Experiment 12: Corrected Metric Replication}
+\label{sec:exp12}
+
+Experiment~12 repeats Experiment~6 with everything held fixed---the same 90
+prompts, the same layers $[1,2,3,4,34]$, the same 300 iterations, the same seed,
+the same control probes, the same mean fitness---and changes only the
+measurement. Search fitness becomes \texttt{seq\_logprob}; the reported metric
+becomes greedy generation accuracy, which depends on no distractor token.
+
+The probe set keeps the original prompts and repairs the three defects of
+Section~\ref{sec:errata}: full answer strings rather than single token ids,
+per-probe distractors reflecting the mistake a model actually makes, and a single
+answer convention for trigonometry. Probes may declare alternate renderings, so a
+model writing $0.7071$ for $\sqrt{2}/2$ is not marked wrong.
+
+\begin{table}[h]
+\centering
+\caption{Experiment~12, validation set (30 held-out probes), greedy generation.}
+\begin{tabular}{lc}
+\toprule
+Metric & Count \\
+\midrule
+Fixed (wrong $\to$ right) & \textbf{5} \\
+Broke (right $\to$ wrong) & \textbf{0} \\
+Accuracy & 14/30 $\to$ \textbf{19/30} \\
+Patch size & 78 flips, 936 bytes \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+All five fixes are changes in what the model emits:
+\verb|d/dx [x^7 + x]| from \texttt{0} to \verb|7x^6 + 1|; the second derivative of
+$3x^3$ from \verb|18x^2| to \verb|18x|; \texttt{Is 113 prime?} and
+\texttt{Is 53 prime?} both from \texttt{No} to \texttt{Yes}; and
+\verb|d/dx [e^(-2x)]| from a malformed \verb|-2e^(-2x) + 0 = -2| to
+\verb|-2e^(-2x)|. Primality improves most (2/5 to 4/5), consistent with it being
+the one original category whose contrast alternated direction and so could not be
+won by a token bias. One training-set probe regresses (\texttt{int\_train\_7}) and
+is reported rather than screened out.
+
+This is a strictly harder bar than Experiment~6's: the model must emit the
+complete correct expression rather than rank one token above another. The
+comparison is therefore not $4 \to 2$ but \emph{4 claimed under a broken metric}
+versus \emph{5 demonstrated under a sound one}.
+
+\subsection{Extended Layer Set: A Negative Result}
+
+Experiment~6 speculated that trigonometry and exponential derivatives saw zero
+fixes because layers 5, 6 and 10---identified as high-impact for calculus---were
+absent from the search set. Rerunning with $[1,2,3,4,5,6,10,34]$ and changing
+nothing else falsifies this.
+
+\begin{table}[h]
+\centering
+\caption{Baseline versus extended layer set, corrected metric, 300 iterations.}
+\begin{tabular}{lcc}
+\toprule
+ & Baseline $[1,2,3,4,34]$ & Extended $+[5,6,10]$ \\
+\midrule
+Train (generation) & 30/60 $\to$ 33/60 & 30/60 $\to$ \textbf{35/60} \\
+Held-out (generation) & 14/30 $\to$ \textbf{19/30} & 14/30 $\to$ 17/30 \\
+Held-out fixed & \textbf{5} & 3 \\
+Held-out broke & 0 & 0 \\
+Patch & 78 flips, 936~B & 95 flips, 1{,}140~B \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The extended search fits the training set better and generalizes worse. Because
+training accuracy \emph{improved}, this is overfitting rather than under-sampling
+of the larger candidate pool. The hypothesis fails on its own terms: trigonometry
+is unmoved (2/5 to 2/5) and second derivatives are unmoved (0/5 to 0/5).
+
+This replicates the Experiment~10 pattern from an independent direction. There,
+adding attention projections eliminated all held-out fixes; here, adding MLP
+layers halves them. Two unrelated expansions of the search space at fixed
+iteration budget both traded generalization for training fit, suggesting the
+constraint is a property of greedy hill climbing on this objective rather than of
+any particular layer or projection type. The narrower search set is the better
+one, and Experiment~6's layer choice was sound even though its stated explanation
+for the trig gap was not.
+
+Both runs used 300 iterations while the candidate pool grew from ${\sim}131$K to
+${\sim}210$K rows, so the extended run sampled a smaller fraction of its space. A
+coverage-matched rerun would separate ``more layers hurt'' from ``more layers need
+more iterations,'' though it would not rescue the claim about trigonometry.
+
+% ============================================================
+\section{Experiment 13: Corrected Variation Testing}
+\label{sec:exp13}
+
+Experiment~13 repeats Experiment~5 as an evaluation only: the same 6-probe
+Experiment~4 patch applied to the same 90 novel variation prompts, with the probe
+set repaired as in Experiment~12 and scored by full-answer log-probability and
+greedy generation.
+
+\begin{table}[h]
+\centering
+\caption{Experiment~5 as published versus Experiment~13 corrected, 90 variations.}
+\begin{tabular}{lcc}
+\toprule
+Metric & Experiment~5 & Experiment~13 \\
+\midrule
+Fixed (wrong $\to$ right) & 2 & 2 \\
+Broke (right $\to$ wrong) & 5 & \textbf{15} \\
+Accuracy & 62/90 $\to$ 59/90 & 49/90 $\to$ \textbf{36/90} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Under \texttt{seq\_logprob} the picture is the same: 65/90 to 57/90, with 0 fixed
+and 8 broken. Damage appears in five of six categories.
+
+\textbf{Finding.} Experiment~5's conclusion holds and was understated. A patch
+trained on 6~probes does not merely fail to generalize; it actively degrades
+capability. The original writeup rationalized its 5~breaks as ``all borderline
+cases with baseline gaps $< 1.2$''; that explanation does not survive correction,
+because the damage is broad rather than marginal.
+
+This is also evidence about the audit itself. The same measurement fix that
+\emph{reduced} Experiment~6's claimed benefit \emph{increased} Experiment~5's
+measured harm, so the defects were not biased toward flattering results.
+
+Taken together, Experiments~12 and~13 sharpen the paper's central empirical
+claim. Training on 6~probes gives 2~fixed and 15~broken; training on 60~diverse
+probes gives 5~fixed and 0~broken on held-out prompts. The contrast between
+memorization and generalization is starker under sound measurement than under the
+original metric.
+
+% ============================================================
+\section{Experiment 14: Head-to-Head Patch Comparison}
+\label{sec:exp14}
+
+Experiment~6 reported 4 held-out fixes and Experiment~12 reported 5, under
+different probe sets and different metrics, so the two are not directly
+comparable. Experiment~14 scores every patch on the same 30 held-out probes with
+the same corrected metric. Evaluation only; no search.
+
+\begin{table}[h]
+\centering
+\caption{All patches on one yardstick: 30 held-out probes, greedy generation.}
+\begin{tabular}{lccccc}
+\toprule
+Patch & Flips & Bytes & Held-out & Fixed & Broke \\
+\midrule
+(no patch) & --- & --- & 14/30 & --- & --- \\
+Experiment~6 (\texttt{token\_gap}) & 93 & 1{,}116 & \textbf{13/30} & 2 & \textbf{3} \\
+\textbf{Experiment~12 (corrected)} & 78 & 936 & \textbf{19/30} & \textbf{5} & \textbf{0} \\
+Experiment~12 (ext.\ layers) & 95 & 1{,}140 & 17/30 & 3 & 0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Finding.} On a level playing field the Experiment~6 patch is net
+negative: it fixes 2 held-out probes and breaks 3, leaving the model worse than
+unpatched. Experiment~6's claim of zero breakage was itself a measurement
+artifact---the single-token metric was too coarse to detect regressions that
+appear once the model must produce a complete expression. Per-category, trigonometry
+falls from 2/5 to 1/5 and exponential derivatives from 4/5 to 3/5 under that patch,
+while the Experiment~12 patch holds or improves every category.
+
+In fairness, the Experiment~6 patch was optimized against a different objective,
+so underperforming here is expected. But the claim attached to it---fixing 4 of
+17 problems the base model gets wrong---was a claim about capability rather than
+about logit gaps, and on those terms it does not survive sound measurement. The
+correction moves the method from $-1$ net to $+5$ net on the same yardstick,
+using 15 fewer flips and 180 fewer bytes.
+
+% ============================================================
+\section{Errata and Corrections}
+\label{sec:errata}
+
+Experiments~5 and~6 report inflated fix counts. The underlying finding---that
+ultra-sparse XOR patches produce targeted behavioral change with no measured
+collateral damage---replicates under corrected measurement. Version~1 results
+are annotated rather than rewritten, and the published artifact is preserved at
+git tag \texttt{v1.0}.
+
+\subsection{Origin}
+
+An independent reproduction in a standalone PyTorch Q1\_0 engine reported two
+problems: the hardcoded wrong token was not the model's actual top competitor on
+74~of~90 probes, and the integral category was a single token contrast repeated
+fifteen times rather than fifteen independent measurements. Both replicate here
+(76/90 and confirmed respectively). Auditing them surfaced a third, larger defect
+not previously reported. The reproduction also confirmed the baseline of 17/30
+validation probes wrong, agreeing across MLX and GGUF/PyTorch runtimes.
+
+\subsection{Defect 1: Dead Probes}
+
+\texttt{encode\_token()} keeps only the last subtoken of an answer string, and
+Bonsai's tokenizer splits digits into single characters. Both \texttt{" 20"} and
+\texttt{" 0"} therefore reduce to the same id, making
+$\text{correct\_id} = \text{wrong\_id}$ and the logit gap \emph{identically zero
+regardless of any weight flip}. Such a probe cannot be fixed, cannot be broken,
+and scores as wrong because its gap is not positive. Experiment~5 contains 7 such
+probes and Experiment~6 contains 8, four of them inside the 30-probe validation
+set. The reported baseline of ``17 of 30 wrong'' therefore included 4 probes
+incapable of being either right or wrong: the fixable pool was 13, not 17, so the
+reported $4/17$ (23.5\%) used an inflated denominator.
+
+\subsection{Defect 2: Measurement Offset}
+
+68 of 90 Experiment~6 answers are multi-token, so the scored id is not the token
+the model emits next; on 52 of 90 probes the model's true top-1 next token is a
+bare space, and the digit was scored one position early. Under \texttt{token\_gap}
+the model appears to answer 13/30 validation probes correctly; scoring the full
+answer string gives 22/30 and greedy decoding gives 17/30.
+
+\subsection{Defect 3: Distractor Quality and Category Degeneracy}
+
+The hardcoded distractor was not the model's top competitor on 76/90 probes,
+median rank~23. Contrast diversity was uneven across categories: 10 distinct
+(correct, wrong) pairs for polynomial and exponential derivatives, 8 for second
+derivatives, 3 for trigonometry, 2 for primality, and \textbf{1} for integrals.
+The integral category is one measurement reported as fifteen. Primality is a
+two-token contrast but alternates direction across probes, so it cannot be won by
+a token bias and is not degenerate in the same way.
+
+\subsection{Corrected Result}
+
+Re-scoring the same 93-flip Experiment~6 patch under full-answer log-probability,
+changing nothing else, gives 2 held-out fixes rather than 4. Scored on the
+corrected probe set (Section~\ref{sec:exp14}) that patch is in fact net negative:
+2 fixed against 3 broken, so even the zero-breakage claim was an artifact of the
+coarse metric.
+Three of the four published fixes (\texttt{pd\_val\_1}, \texttt{sd\_val\_3},
+\texttt{int\_val\_4}) were already correct at baseline and were counted as
+failures only because of Defect~2; \texttt{int\_val\_4} is the integral probe from
+the degenerate category. The corrected metric additionally finds one fix the
+original missed (\texttt{pd\_val\_0}). Greedy decoding confirms both survivors:
+\verb|d/dx [x^7 + x] =| changes from \texttt{0} to \verb|7x^6 + 1|, and
+\texttt{Is 113 prime?} changes from \texttt{No} to \texttt{Yes}.
+
+The claim of zero broken probes on held-out data holds under every metric tested.
+Experiment~5's sign-flip counts were affected by its 7 dead probes and
+understated the harm: rerun as Experiment~13 (Section~\ref{sec:exp13}), the
+6-probe patch breaks 15 probes rather than 5. The defects were not biased toward
+flattering results---the same fix that reduced Experiment~6's claimed benefit
+increased Experiment~5's measured damage.
+
+Correcting the objective did more than deflate the original number. Re-running
+the search itself against the sound metric (Experiment~12, Section~\ref{sec:exp12}),
+holding layers, iterations, seed and control probes fixed, yields \textbf{5}
+held-out fixes with \textbf{zero} breakage from a \emph{smaller} patch---78 flips
+and 936~bytes against Experiment~6's 93 flips and 1{,}116~bytes---with every fix
+verified in free generation. The original search had spent its budget partly
+optimizing a mis-tokenized target scored against a rank-23 distractor; aiming it
+correctly recovered more than the defect had cost.
+
+\subsection{Methodological Change}
+
+Logit gaps are retained as a search signal but are no longer reported as a
+result. This implements the fix identified by Experiment~11's own
+interpretation---a more sensitive fitness function based on log-probability
+differences rather than logit gaps. The original metric remains available so
+Experiments~1--11 stay reproducible as published.
+
 \section{Limitations}
 \label{sec:limitations}
+
+\textbf{The corrected metric is MLX-only.} \texttt{seq\_logprob} requires
+\texttt{Backend.seq\_logprobs()}, implemented for MLX but not for GGUF: the
+\texttt{bankai\_eval} subprocess exposes a single-gap \texttt{PROBE} command and
+would need a continuation-scoring command alongside it. Until then,
+Experiments~9--11 rest on \texttt{token\_gap} and inherit its defects; their
+numbers warrant the same caution as Experiment~6's. The GGUF backend raises
+\texttt{NotImplementedError} rather than silently falling back.
+
 
 \textbf{Evaluation harness limitations.} Our GSM8K accuracy (22\%) is
 well below reported benchmarks, indicating evaluation setup differences.
@@ -464,8 +952,24 @@ harnesses is a next step.
 search with crossover (XOR of XOR patches is a valid patch) could find
 better solutions.
 
-\textbf{Row-level granularity is coarse.} Each flip modifies 4,096~bits.
-Per-group (128~bits) or per-bit search could produce more precise patches.
+\textbf{Row-level granularity is the right operating point for mean-fitness
+search.} Experiment~11 confirmed that naive per-group search fails:
+individual 128-bit flips produce probe-gap changes an order of magnitude
+smaller than row-level flips, and the control-degradation penalty dominates
+this tiny signal. Finer granularity requires a more sensitive fitness
+function or cumulative flipping (accepting groups of groups together).
+
+\textbf{Attention projections do not help generalization.} Experiment~10
+showed that XOR flips on attention Q/K/V/O are mechanically valid but
+encode context-specific routing patterns that overfit to training probes
+and regress on held-out ones. MLP is the right target for behavioral
+patching.
+
+\textbf{GGUF and MLX versions of Bonsai are not the same model.} GGUF
+Q1\_0\_g128 is scale-only (1.125~bpw) while MLX is scale+bias (1.25~bpw),
+making GGUF strictly less expressive. Identical probe prompts produce
+different logit gaps on the two formats, and patches found on one do
+not necessarily transfer. Experiments 3--8 use MLX; 9--11 use GGUF.
 
 \textbf{Patch stacking shows interference.} Experiment~7 confirms
 stacking is mechanically sound but behaviorally lossy---individual
@@ -516,11 +1020,15 @@ modifications reduce to sparse XOR bitmasks that are orders of magnitude
 smaller than existing adapters, incur zero inference overhead, and can be
 applied and reverted in microseconds.
 
-Through eight experiments on Bonsai~8B, we characterized the method's
+Through eleven experiments on Bonsai~8B, we characterized the method's
 capabilities and limitations: targeted corrections work reliably,
-generalization requires diverse training signal, and the overall approach
-represents a new point in the adaptation design space---one that is
-uniquely enabled by true binary model architectures.
+generalization requires diverse training signal, row-level MLP flips
+are the right operating point (finer granularity fails at naive greedy
+search; attention projections overfit), and the approach ports to
+NVIDIA GPUs via a custom llama.cpp tool that runs $\sim$24$\times$ faster
+than the Apple Silicon baseline. The method represents a new point in
+the adaptation design space---one that is uniquely enabled by true
+binary model architectures.
 
 Code, patches, and all experiments are available at
 \url{https://github.com/nikshepsvn/bankai}.

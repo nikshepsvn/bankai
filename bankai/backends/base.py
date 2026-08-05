@@ -71,6 +71,20 @@ class Backend(ABC):
         """Generate text from a prompt. Optional — only needed for benchmark evals."""
         raise NotImplementedError(f"{type(self).__name__} does not implement generate()")
 
+    def seq_logprobs(self, items: list[tuple[list[int], list[int]]]) -> list[float]:
+        """Teacher-forced total logprob of each continuation given its prompt.
+
+        Each item is (prompt_ids, continuation_ids). Returns one summed logprob
+        per item. Required by the "seq_logprob" probe metric, which scores whole
+        answer strings instead of a single token id — see bankai.probes.
+
+        Implementations should keep the batching layout deterministic so that
+        repeated calls with identical inputs return identical values; the search
+        compares measurements across weight flips, so reduction-order jitter
+        between calls would masquerade as a fitness change.
+        """
+        raise NotImplementedError(f"{type(self).__name__} does not implement seq_logprobs()")
+
     # ── Convenience: batch probe measurement ──
 
     def measure_probes(self, probes: list[tuple[str, str, str]]) -> list[float]:

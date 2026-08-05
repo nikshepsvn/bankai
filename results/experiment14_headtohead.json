@@ -1,0 +1,91 @@
+{
+  "baseline_correct": 14,
+  "n": 30,
+  "rows": [
+    [
+      "exp6  (token_gap search)",
+      93,
+      1116,
+      13,
+      2,
+      3,
+      1,
+      0
+    ],
+    [
+      "exp12 (corrected, base layers)",
+      78,
+      936,
+      19,
+      5,
+      0,
+      2,
+      0
+    ],
+    [
+      "exp12 (corrected, ext layers)",
+      95,
+      1140,
+      17,
+      3,
+      0,
+      0,
+      0
+    ]
+  ],
+  "detail": {
+    "exp6  (token_gap search)": {
+      "fixed": [
+        "pd_val_0",
+        "pr_val_1"
+      ],
+      "broke": [
+        "int_val_4",
+        "trig_val_0",
+        "ed_val_4"
+      ],
+      "per_category": {
+        "poly_deriv": 4,
+        "second_deriv": 0,
+        "integral": 2,
+        "prime": 3,
+        "trig": 1,
+        "exp_deriv": 3
+      }
+    },
+    "exp12 (corrected, base layers)": {
+      "fixed": [
+        "pd_val_0",
+        "sd_val_3",
+        "pr_val_1",
+        "pr_val_2",
+        "ed_val_2"
+      ],
+      "broke": [],
+      "per_category": {
+        "poly_deriv": 4,
+        "second_deriv": 1,
+        "integral": 3,
+        "prime": 4,
+        "trig": 2,
+        "exp_deriv": 5
+      }
+    },
+    "exp12 (corrected, ext layers)": {
+      "fixed": [
+        "pd_val_0",
+        "int_val_3",
+        "ed_val_2"
+      ],
+      "broke": [],
+      "per_category": {
+        "poly_deriv": 4,
+        "second_deriv": 0,
+        "integral": 4,
+        "prime": 2,
+        "trig": 2,
+        "exp_deriv": 5
+      }
+    }
+  }
+}

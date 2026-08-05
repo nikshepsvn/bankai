@@ -1,0 +1,395 @@
+{
+  "name": "calculus_beefy_v1",
+  "description": "Experiment 6 beefier: 800 iters, 8 layers, L40S GGUF",
+  "base_model": "prism-ml/Bonsai-8B-gguf",
+  "flips": [
+    {
+      "layer": 1,
+      "proj": "gate_proj",
+      "row": 11784
+    },
+    {
+      "layer": 1,
+      "proj": "gate_proj",
+      "row": 6416
+    },
+    {
+      "layer": 6,
+      "proj": "gate_proj",
+      "row": 8517
+    },
+    {
+      "layer": 5,
+      "proj": "up_proj",
+      "row": 3786
+    },
+    {
+      "layer": 5,
+      "proj": "gate_proj",
+      "row": 10119
+    },
+    {
+      "layer": 4,
+      "proj": "gate_proj",
+      "row": 6509
+    },
+    {
+      "layer": 10,
+      "proj": "gate_proj",
+      "row": 11137
+    },
+    {
+      "layer": 6,
+      "proj": "up_proj",
+      "row": 3525
+    },
+    {
+      "layer": 34,
+      "proj": "up_proj",
+      "row": 6728
+    },
+    {
+      "layer": 10,
+      "proj": "up_proj",
+      "row": 6183
+    },
+    {
+      "layer": 34,
+      "proj": "up_proj",
+      "row": 4991
+    },
+    {
+      "layer": 2,
+      "proj": "gate_proj",
+      "row": 3272
+    },
+    {
+      "layer": 10,
+      "proj": "up_proj",
+      "row": 4919
+    },
+    {
+      "layer": 4,
+      "proj": "up_proj",
+      "row": 2565
+    },
+    {
+      "layer": 4,
+      "proj": "up_proj",
+      "row": 9579
+    },
+    {
+      "layer": 2,
+      "proj": "up_proj",
+      "row": 10749
+    },
+    {
+      "layer": 34,
+      "proj": "up_proj",
+      "row": 3657
+    },
+    {
+      "layer": 5,
+      "proj": "gate_proj",
+      "row": 9958
+    },
+    {
+      "layer": 5,
+      "proj": "gate_proj",
+      "row": 1176
+    },
+    {
+      "layer": 10,
+      "proj": "gate_proj",
+      "row": 10310
+    },
+    {
+      "layer": 34,
+      "proj": "up_proj",
+      "row": 3659
+    },
+    {
+      "layer": 10,
+      "proj": "gate_proj",
+      "row": 8417
+    },
+    {
+      "layer": 2,
+      "proj": "up_proj",
+      "row": 941
+    },
+    {
+      "layer": 6,
+      "proj": "gate_proj",
+      "row": 11287
+    },
+    {
+      "layer": 34,
+      "proj": "up_proj",
+      "row": 1274
+    },
+    {
+      "layer": 34,
+      "proj": "up_proj",
+      "row": 11886
+    },
+    {
+      "layer": 34,
+      "proj": "gate_proj",
+      "row": 8046
+    },
+    {
+      "layer": 1,
+      "proj": "gate_proj",
+      "row": 8236
+    },
+    {
+      "layer": 3,
+      "proj": "up_proj",
+      "row": 9855
+    },
+    {
+      "layer": 34,
+      "proj": "up_proj",
+      "row": 218
+    },
+    {
+      "layer": 34,
+      "proj": "up_proj",
+      "row": 2535
+    },
+    {
+      "layer": 34,
+      "proj": "gate_proj",
+      "row": 4049
+    },
+    {
+      "layer": 5,
+      "proj": "up_proj",
+      "row": 1106
+    },
+    {
+      "layer": 34,
+      "proj": "up_proj",
+      "row": 4990
+    },
+    {
+      "layer": 6,
+      "proj": "gate_proj",
+      "row": 9570
+    },
+    {
+      "layer": 4,
+      "proj": "gate_proj",
+      "row": 11237
+    },
+    {
+      "layer": 10,
+      "proj": "up_proj",
+      "row": 6917
+    },
+    {
+      "layer": 34,
+      "proj": "gate_proj",
+      "row": 9070
+    },
+    {
+      "layer": 2,
+      "proj": "gate_proj",
+      "row": 856
+    },
+    {
+      "layer": 5,
+      "proj": "up_proj",
+      "row": 3036
+    },
+    {
+      "layer": 4,
+      "proj": "gate_proj",
+      "row": 7195
+    },
+    {
+      "layer": 34,
+      "proj": "gate_proj",
+      "row": 4175
+    },
+    {
+      "layer": 2,
+      "proj": "gate_proj",
+      "row": 8825
+    },
+    {
+      "layer": 34,
+      "proj": "up_proj",
+      "row": 1126
+    },
+    {
+      "layer": 1,
+      "proj": "gate_proj",
+      "row": 7012
+    },
+    {
+      "layer": 10,
+      "proj": "gate_proj",
+      "row": 6091
+    },
+    {
+      "layer": 34,
+      "proj": "up_proj",
+      "row": 9829
+    },
+    {
+      "layer": 34,
+      "proj": "gate_proj",
+      "row": 11479
+    },
+    {
+      "layer": 10,
+      "proj": "up_proj",
+      "row": 5380
+    },
+    {
+      "layer": 34,
+      "proj": "up_proj",
+      "row": 9304
+    },
+    {
+      "layer": 4,
+      "proj": "gate_proj",
+      "row": 5681
+    },
+    {
+      "layer": 6,
+      "proj": "gate_proj",
+      "row": 6805
+    },
+    {
+      "layer": 10,
+      "proj": "up_proj",
+      "row": 6365
+    },
+    {
+      "layer": 5,
+      "proj": "gate_proj",
+      "row": 10035
+    },
+    {
+      "layer": 10,
+      "proj": "gate_proj",
+      "row": 1603
+    },
+    {
+      "layer": 34,
+      "proj": "gate_proj",
+      "row": 11364
+    },
+    {
+      "layer": 3,
+      "proj": "gate_proj",
+      "row": 7630
+    },
+    {
+      "layer": 6,
+      "proj": "gate_proj",
+      "row": 6918
+    },
+    {
+      "layer": 34,
+      "proj": "up_proj",
+      "row": 6250
+    },
+    {
+      "layer": 4,
+      "proj": "gate_proj",
+      "row": 8874
+    },
+    {
+      "layer": 1,
+      "proj": "gate_proj",
+      "row": 489
+    },
+    {
+      "layer": 5,
+      "proj": "gate_proj",
+      "row": 8898
+    },
+    {
+      "layer": 34,
+      "proj": "gate_proj",
+      "row": 2645
+    },
+    {
+      "layer": 4,
+      "proj": "gate_proj",
+      "row": 1807
+    },
+    {
+      "layer": 10,
+      "proj": "gate_proj",
+      "row": 2970
+    },
+    {
+      "layer": 10,
+      "proj": "gate_proj",
+      "row": 7436
+    },
+    {
+      "layer": 1,
+      "proj": "gate_proj",
+      "row": 8900
+    },
+    {
+      "layer": 3,
+      "proj": "up_proj",
+      "row": 10088
+    },
+    {
+      "layer": 1,
+      "proj": "gate_proj",
+      "row": 1328
+    },
+    {
+      "layer": 34,
+      "proj": "gate_proj",
+      "row": 4367
+    },
+    {
+      "layer": 6,
+      "proj": "up_proj",
+      "row": 4352
+    },
+    {
+      "layer": 10,
+      "proj": "up_proj",
+      "row": 10841
+    },
+    {
+      "layer": 10,
+      "proj": "gate_proj",
+      "row": 6890
+    }
+  ],
+  "metadata": {
+    "search_algorithm": "greedy_hill_climbing_screened_mean",
+    "backend": "GGUFBackend",
+    "search_layers": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      10,
+      34
+    ],
+    "search_projs": [
+      "gate_proj",
+      "up_proj"
+    ],
+    "max_iters": 800,
+    "control_penalty": 2.0,
+    "final_fitness": 0.32857921666666656,
+    "search_time_seconds": 424.80232071876526,
+    "screened_out": 54
+  }
+}
