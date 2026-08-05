@@ -47,7 +47,8 @@ We validate on [Bonsai 8B](https://huggingface.co/prism-ml/Bonsai-8B-mlx-1bit) (
 > **Correction notice.** The Experiment 6 figure quoted above ("4 of 17, 23.5%") is
 > superseded. An audit prompted by [issue #3](https://github.com/nikshepsvn/bankai/issues/3)
 > found three defects in the probe measurement — three of those four "fixes" were
-> already correct at baseline. Re-scoring that same patch soundly gives 2 fixes.
+> already correct at baseline, and on a level playing field that patch is net negative
+> (2 fixed, 3 broken).
 > Re-*running* the search against a sound objective ([Experiment 12](#experiment-12-corrected-metric-replication))
 > gives **5 held-out fixes with zero breakage from a smaller 936-byte patch**, every one
 > verified in free generation rather than by a logit proxy. The central claim is
@@ -496,11 +497,13 @@ We tested 90 novel variations (15 per category) against the Experiment 4 patch. 
 ### Experiment 6: Generalization-Optimized Search
 
 > **⚠ Superseded.** The fix counts below are inflated by probe measurement defects — see
-> [Errata and Corrections](#errata-and-corrections). Under corrected scoring this same
-> patch fixes **2** held-out problems, not 4, with zero breakage. Three of the four
-> "fixes" were already correct at baseline. The numbers are left unmodified here as the
-> published record; [Experiment 12](#experiment-12-corrected-metric-replication) is the
-> corrected replication.
+> [Errata and Corrections](#errata-and-corrections). Three of the four "fixes" were
+> already correct at baseline. Scored on the same held-out probes as
+> [Experiment 12](#experiment-12-corrected-metric-replication) under the same corrected
+> metric, this patch is **net negative**: 2 fixed, 3 broken, 14/30 → 13/30
+> ([Experiment 14](#experiment-14-head-to-head-patch-comparison)). The "zero breakage"
+> claim below was itself an artifact — the single-token metric was too coarse to see the
+> regressions. Numbers left unmodified as the published record.
 
 **Search:** 60 training probes (10 per category), mean fitness, 300 iterations, 93 accepted flips, ~67 minutes on Apple M3. Validated on 30 held-out probes never seen during search.
 
@@ -707,6 +710,25 @@ This replicates the Experiment 10 pattern from an independent direction. There, 
 Caveat: both runs used 300 iterations while the candidate pool grew from ~131K to ~210K rows, so the extended run sampled a smaller fraction of its space. A budget-matched-by-coverage rerun would separate "more layers hurt" from "more layers need more iterations" — but it would not rescue the specific claim about trig, which is unmoved.
 
 **Evaluation notes.** Generation is scored by prefix match after normalizing whitespace, grouping, and explicit multiplication, with `√` spelled out; a trailing constant of integration is accepted, and probes may declare alternate renderings so `0.7071` counts for `sqrt(2)/2`. Two matcher defects were found and fixed while analysing this run — `+ C` followed by further text was rejected, and `1/√2` was not accepted as `sqrt(2)/2`. Both were corrected and **both the before and after sets were re-scored under the identical rule** via `tools/rescore_generation.py`, which re-scores stored outputs without re-running the model. Answers are capped at 14 generated tokens, so a small number of long expressions (e.g. `pd_val_2`) are truncated and scored wrong in both conditions; this understates absolute accuracy but not the delta.
+
+### Experiment 14: Head-to-Head Patch Comparison
+
+Experiment 6 reported 4 held-out fixes and Experiment 12 reported 5, but under different probe sets and different metrics — so those numbers cannot be compared directly. This scores every patch on the **same** 30 held-out probes with the **same** corrected metric. Evaluation only, no search.
+
+| Patch | Flips | Bytes | Held-out (generation) | Fixed | Broke |
+|---|---|---|---|---|---|
+| *(no patch)* | — | — | 14/30 | — | — |
+| Experiment 6 (`token_gap` search) | 93 | 1,116 | **13/30** | 2 | **3** |
+| **Experiment 12 (corrected, base layers)** | 78 | 936 | **19/30** | **5** | **0** |
+| Experiment 12 (corrected, extended layers) | 95 | 1,140 | 17/30 | 3 | 0 |
+
+**Finding:** On a level playing field the Experiment 6 patch is **net negative** — it fixes 2 held-out probes and breaks 3 (`int_val_4`, `trig_val_0`, `ed_val_4`), leaving the model worse than unpatched. Experiment 6's headline claim of **zero breakage was itself a measurement artifact**: the single-token metric was too coarse to detect the regressions, which only become visible when the model is required to produce the complete expression.
+
+Per-category, the damage is specific: trig drops 2 → 1 and exp_deriv 4 → 3 under the Experiment 6 patch, while the Experiment 12 patch holds or improves every category (second_deriv 0 → 1, prime 2 → 4, exp_deriv 4 → 5).
+
+In fairness to the original, the Experiment 6 patch was optimized against a different objective, so underperforming on this one is expected. But the claim attached to it — "fixes 4 of 17 problems the base model gets wrong" — was a claim about capability rather than about logit gaps, and on those terms it does not survive sound measurement.
+
+This is the comparison that answers whether the correction produced a better patch, and by how much: from **−1 net** to **+5 net** on the same yardstick, using 15 fewer flips and 180 fewer bytes.
 
 ### Experiment 13: Corrected Variation Testing
 

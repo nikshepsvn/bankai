@@ -800,6 +800,45 @@ memorization and generalization is starker under sound measurement than under th
 original metric.
 
 % ============================================================
+\section{Experiment 14: Head-to-Head Patch Comparison}
+\label{sec:exp14}
+
+Experiment~6 reported 4 held-out fixes and Experiment~12 reported 5, under
+different probe sets and different metrics, so the two are not directly
+comparable. Experiment~14 scores every patch on the same 30 held-out probes with
+the same corrected metric. Evaluation only; no search.
+
+\begin{table}[h]
+\centering
+\caption{All patches on one yardstick: 30 held-out probes, greedy generation.}
+\begin{tabular}{lccccc}
+\toprule
+Patch & Flips & Bytes & Held-out & Fixed & Broke \\
+\midrule
+(no patch) & --- & --- & 14/30 & --- & --- \\
+Experiment~6 (\texttt{token\_gap}) & 93 & 1{,}116 & \textbf{13/30} & 2 & \textbf{3} \\
+\textbf{Experiment~12 (corrected)} & 78 & 936 & \textbf{19/30} & \textbf{5} & \textbf{0} \\
+Experiment~12 (ext.\ layers) & 95 & 1{,}140 & 17/30 & 3 & 0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Finding.} On a level playing field the Experiment~6 patch is net
+negative: it fixes 2 held-out probes and breaks 3, leaving the model worse than
+unpatched. Experiment~6's claim of zero breakage was itself a measurement
+artifact---the single-token metric was too coarse to detect regressions that
+appear once the model must produce a complete expression. Per-category, trigonometry
+falls from 2/5 to 1/5 and exponential derivatives from 4/5 to 3/5 under that patch,
+while the Experiment~12 patch holds or improves every category.
+
+In fairness, the Experiment~6 patch was optimized against a different objective,
+so underperforming here is expected. But the claim attached to it---fixing 4 of
+17 problems the base model gets wrong---was a claim about capability rather than
+about logit gaps, and on those terms it does not survive sound measurement. The
+correction moves the method from $-1$ net to $+5$ net on the same yardstick,
+using 15 fewer flips and 180 fewer bytes.
+
+% ============================================================
 \section{Errata and Corrections}
 \label{sec:errata}
 
@@ -853,7 +892,10 @@ a token bias and is not degenerate in the same way.
 \subsection{Corrected Result}
 
 Re-scoring the same 93-flip Experiment~6 patch under full-answer log-probability,
-changing nothing else, gives 2 held-out fixes rather than 4, with zero breakage.
+changing nothing else, gives 2 held-out fixes rather than 4. Scored on the
+corrected probe set (Section~\ref{sec:exp14}) that patch is in fact net negative:
+2 fixed against 3 broken, so even the zero-breakage claim was an artifact of the
+coarse metric.
 Three of the four published fixes (\texttt{pd\_val\_1}, \texttt{sd\_val\_3},
 \texttt{int\_val\_4}) were already correct at baseline and were counted as
 failures only because of Defect~2; \texttt{int\_val\_4} is the integral probe from
