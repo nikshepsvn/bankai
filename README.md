@@ -44,6 +44,16 @@ We validate on [Bonsai 8B](https://huggingface.co/prism-ml/Bonsai-8B-mlx-1bit) (
 
 \* *Experiments 3–4 produce sub-kilobyte patches (840–864 bytes). The generalization-optimized patch (Experiment 6) is 1.1 KB.*
 
+> **Correction notice.** The Experiment 6 figure quoted above ("4 of 17, 23.5%") is
+> superseded. An audit prompted by [issue #3](https://github.com/nikshepsvn/bankai/issues/3)
+> found three defects in the probe measurement — three of those four "fixes" were
+> already correct at baseline. Re-scoring that same patch soundly gives 2 fixes.
+> Re-*running* the search against a sound objective ([Experiment 12](#experiment-12-corrected-metric-replication))
+> gives **5 held-out fixes with zero breakage from a smaller 936-byte patch**, every one
+> verified in free generation rather than by a logit proxy. The central claim is
+> strengthened, not weakened. See [Errata and Corrections](#errata-and-corrections).
+> Version 1.0 is preserved at git tag `v1.0`.
+
 ## How It Works
 
 ```
@@ -156,9 +166,29 @@ All experiments use Bonsai 8B (`prism-ml/Bonsai-8B-mlx-1bit`), a true 1-bit, 8.2
 
 Experiments were run on Apple M3 (24 GB, peak ~3 GB for model + ~2 GB for search state) using PrismML's MLX fork with 1-bit kernel support.
 
-### Evaluation: Logit Gap Probes
+### Evaluation: Probe Metrics
 
-We measure behavioral change via **logit gap probes**: pairs of `(correct_token, wrong_token)` following a deterministic prompt. The logit gap `G = logit(correct) − logit(wrong)` is a single-forward-pass measurement: positive means the model prefers the correct answer, negative means it prefers the wrong one.
+> Experiments 1–11 use the `token_gap` metric described first. It has defects documented
+> in [Errata and Corrections](#errata-and-corrections). Experiment 12 onward uses
+> `seq_logprob` for search and greedy generation for reporting.
+
+**`token_gap` (Experiments 1–11).** Pairs of `(correct_token, wrong_token)` following a
+deterministic prompt. The logit gap `G = logit(correct) − logit(wrong)` is a
+single-forward-pass measurement: positive means the model prefers the correct answer,
+negative means it prefers the wrong one. Answer strings are reduced to a single token id
+by `encode_token()`, which keeps the last subtoken.
+
+**`seq_logprob` (Experiment 12 onward).** The gap is the difference in summed
+teacher-forced log-probability between the full correct answer string and a plausible
+per-probe distractor, with continuations tokenized in the context of their prompt.
+Multi-token answers, leading spaces, and same-suffix collisions all behave correctly.
+This is the search fitness only.
+
+**Greedy generation (Experiment 12 onward, headline).** What the model actually emits
+under greedy decoding, compared against the expected answer and any accepted alternate
+renderings. It depends on no distractor token, so it cannot be satisfied by moving
+probability between two hardcoded ids. Logit gaps are a search signal; generation is the
+result.
 
 **Target probes (math — optimized for):**
 
@@ -276,6 +306,22 @@ Motivated by Experiment 5's finding that 6-probe patches memorize, we tested whe
 **Question:** Does 32x finer-grained flipping (128-bit groups instead of 4,096-bit rows) find patches that row-level can't express?
 
 **Method:** Replace `FLIP_ROW` with `FLIP_GROUP(tensor, row, group)` that XORs a single 128-bit block within one row (bytes 2..17 of one Q1_0_g128 block). Search space grows from ~131K rows to ~6.3M groups. 1500 iterations, 8 layers, MLP only. Expected: finer modifications might unlock surgical fixes that row-level cannot express.
+
+### Experiment 12: Corrected Metric Replication
+
+**Question:** How much of Experiment 6's result survives once the probe measurement is sound — and does a search pointed at a correct objective find *more* than one pointed at a broken one?
+
+**Method:** Hold everything from Experiment 6 fixed — same 90 prompts, same layers, same projections, same 300 iterations, same seed 42, same control probes, same mean fitness — and change only the measurement. Fitness becomes `seq_logprob`: the summed teacher-forced log-probability of the full correct answer against a plausible per-probe distractor. The headline metric becomes greedy generation accuracy, which depends on no distractor token at all.
+
+The probe set (`experiments_exp12_data.py`) keeps the original prompts and repairs the three defects: full answer strings instead of single token ids, per-probe distractors reflecting the actual mistake a model makes (the first derivative where the second was asked for, the un-incremented exponent on an integral, the cofunction value in trig), and one answer convention for trig throughout. Probes may declare `alternates` so a model writing `0.7071` for `sqrt(2)/2` is not marked wrong.
+
+Two runs: `--layers baseline` reuses Experiment 6's `[1,2,3,4,34]` for an apples-to-apples comparison, and `--layers extended` adds layers 5, 6 and 10 — which Experiment 6's own writeup identified as high-impact for calculus but never actually searched.
+
+### Experiment 13: Corrected Variation Testing
+
+**Question:** Does Experiment 5's memorization finding survive correction, and by how much was it mismeasured?
+
+**Method:** Evaluation only, no search. Apply the same 6-probe Experiment 4 patch to the same 90 novel variation prompts, with the probe set repaired the same way as Experiment 12 (`experiments_exp13_data.py`), and score with `seq_logprob` and greedy generation.
 
 ## Results
 
@@ -425,6 +471,12 @@ No meaningful degradation on measured controls (5 probes).
 
 ### Experiment 5: Variation Testing (Experiment 4 Patch)
 
+> **⚠ Superseded — and the original numbers were too kind.** 7 of these 90 variation
+> probes are dead under the `token_gap` metric. Rerun under corrected scoring
+> ([Experiment 13](#experiment-13-corrected-variation-testing)), this patch breaks **15**
+> probes rather than 5, taking accuracy from 49/90 to 36/90. The conclusion below is
+> correct and in fact understated. Numbers left unmodified as the published record.
+
 **Question:** Does the 6-probe calculus patch generalize?
 
 We tested 90 novel variations (15 per category) against the Experiment 4 patch. Sign-flip analysis (correct→wrong or wrong→correct, ignoring confidence changes):
@@ -442,6 +494,13 @@ We tested 90 novel variations (15 per category) against the Experiment 4 patch. 
 **Finding:** The 6-probe patch memorizes specific prompts rather than shifting capabilities. It fixes 2 novel probes but breaks 5 — all borderline cases with baseline gaps < 1.2. The patch is a precision tool for targeted correction, not a capability improver.
 
 ### Experiment 6: Generalization-Optimized Search
+
+> **⚠ Superseded.** The fix counts below are inflated by probe measurement defects — see
+> [Errata and Corrections](#errata-and-corrections). Under corrected scoring this same
+> patch fixes **2** held-out problems, not 4, with zero breakage. Three of the four
+> "fixes" were already correct at baseline. The numbers are left unmodified here as the
+> published record; [Experiment 12](#experiment-12-corrected-metric-replication) is the
+> corrected replication.
 
 **Search:** 60 training probes (10 per category), mean fitness, 300 iterations, 93 accepted flips, ~67 minutes on Apple M3. Validated on 30 held-out probes never seen during search.
 
@@ -587,6 +646,166 @@ No degradation detected. The patch slightly improved GSM8K accuracy (+3 problems
 **Finding (negative result):** Per-group flips (128 bits each) are too fine-grained for the current mean-fitness search. Each group-flip produces probe gap changes on the order of 0.001–0.01 — about 10x smaller than row-level flips — and the control degradation penalty (λ=2.0) dominates this tiny signal. The search correctly rejected ~99.6% of candidates and the accepted flips produced no measurable behavioral change.
 
 **Interpretation:** Finer granularity is not free — it needs either (a) a much more sensitive fitness function (e.g., log-probability differences instead of logit gaps), (b) a lower control penalty to let small improvements through, (c) cumulative flipping (accept pairs/triples of groups together to reach a meaningful effect size), or (d) a completely different search algorithm (evolutionary with population, or gradient-free optimization with variance reduction). Naive greedy hill climbing at group granularity is not viable.
+
+### Experiment 12: Corrected Metric Replication
+
+**Search:** 60 training probes, `seq_logprob` fitness, 300 iterations, seed 42, layers `[1,2,3,4,34]` — identical to Experiment 6 in every respect except the measurement. 78 accepted flips, 936 bytes. XOR revert verified bit-exact (baseline drift after revert: `0.00e+00`).
+
+**Validation (30 held-out probes, greedy generation — the headline):**
+
+| Metric | Count |
+|---|---|
+| Fixed (wrong → right) | **5** |
+| Broke (right → wrong) | **0** |
+| Accuracy | 14/30 → **19/30** |
+
+**Training set (60 probes, greedy generation):** 30/60 → 33/60, 4 fixed, 1 broke (`int_train_7`).
+
+**Per-category validation:**
+
+| Category | Before | After |
+|---|---|---|
+| poly_deriv | 3/5 | 4/5 |
+| second_deriv | 0/5 | 1/5 |
+| integral | 3/5 | 3/5 |
+| prime | 2/5 | **4/5** |
+| trig | 2/5 | 2/5 |
+| exp_deriv | 4/5 | **5/5** |
+
+**All five held-out fixes, as actual model output:**
+
+```
+pd_val_0  d/dx [x^7 + x] =        ' 0'                    -> ' 7x^6 + 1'
+sd_val_3  2nd derivative of 3x^3  ' 18x^2'                -> ' 18x'
+pr_val_1  Is 113 prime?           ' No, 113 is not prime' -> ' Yes, 113 is a prime number'
+pr_val_2  Is 53 prime?            ' No, 53 is not a...'   -> ' Yes, 53 is a prime number'
+ed_val_2  d/dx [e^(-2x)] =        ' -2e^(-2x) + 0 = -2'   -> ' -2e^(-2x)'
+```
+
+**Finding:** Correcting the metric did not merely deflate the original result — it produced a better one. The corrected search finds **5 held-out fixes with zero breakage** using a **smaller** patch (78 flips / 936 bytes vs 93 flips / 1,116 bytes), and every fix is verified at the generation level rather than by a logit proxy. This is a strictly harder bar than Experiment 6's: the model must emit the complete correct expression, not merely rank one token above another. Under that bar the base model answers 14 of 30 held-out probes correctly, and the patch takes it to 19.
+
+The comparison to Experiment 6 is therefore not 4 → 2 but rather *4 claimed under a broken metric* → *5 demonstrated under a sound one*. Three of Experiment 6's four fixes were measurement artifacts; the patch found here fixes five problems that were genuinely wrong and stay fixed in free generation.
+
+Primality improves most (2/5 → 4/5), consistent with it being the one original category whose contrast alternated direction and therefore could not be won by a token bias. The single training-set regression (`int_train_7`: "The antiderivative of x^3 is" goes from `x^4/4` to `3/4 x^4`) is a real one and is reported rather than screened out.
+
+**Evaluation notes.** Generation is scored by prefix match after normalizing whitespace, grouping, and explicit multiplication, with `√` spelled out; a trailing constant of integration is accepted, and probes may declare alternate renderings so `0.7071` counts for `sqrt(2)/2`. Two matcher defects were found and fixed while analysing this run — `+ C` followed by further text was rejected, and `1/√2` was not accepted as `sqrt(2)/2`. Both were corrected and **both the before and after sets were re-scored under the identical rule** via `tools/rescore_generation.py`, which re-scores stored outputs without re-running the model. Answers are capped at 14 generated tokens, so a small number of long expressions (e.g. `pd_val_2`) are truncated and scored wrong in both conditions; this understates absolute accuracy but not the delta.
+
+### Experiment 13: Corrected Variation Testing
+
+**Setup:** Evaluation only, no search. The same 6-probe Experiment 4 patch (`calculus_v1.json`) applied to the same 90 novel variations as Experiment 5, scored with `seq_logprob` and greedy generation.
+
+| Metric | Experiment 5 (published) | Experiment 13 (corrected) |
+|---|---|---|
+| Fixed (wrong → right) | 2 | 2 |
+| Broke (right → wrong) | 5 | **15** |
+| Accuracy | 62/90 → 59/90 | 49/90 → **36/90** |
+
+Under `seq_logprob` the picture is the same: 65/90 → 57/90, **0 fixed, 8 broke**.
+
+**Per-category (greedy generation):**
+
+| Category | Before | After |
+|---|---|---|
+| poly_deriv | 11/15 | 6/15 |
+| second_deriv | 1/15 | 0/15 |
+| integral | 8/15 | 6/15 |
+| prime | 7/15 | 7/15 |
+| trig | 10/15 | 6/15 |
+| exp_deriv | 12/15 | 11/15 |
+
+**Finding:** Experiment 5's conclusion holds and was **understated**. A patch trained on 6 probes does not merely fail to generalize — it actively damages capability across five of six categories, breaking three times as many probes as originally measured. The original writeup rationalized the 5 breaks as "all borderline cases with baseline gaps < 1.2"; that explanation does not survive correction, because the damage is broad rather than marginal.
+
+This matters for reading the correction as a whole. The same measurement fix that **reduced** Experiment 6's claimed benefit **increased** Experiment 5's measured harm. The defects were not biased toward flattering results, and correcting them was not an exercise in preserving them.
+
+Taken together, Experiments 12 and 13 sharpen the paper's central empirical claim considerably. Training on 6 probes: 2 fixed, 15 broken. Training on 60 diverse probes: 5 fixed, 0 broken on held-out prompts. The contrast between memorization and generalization is far starker under sound measurement than it was under the original metric.
+
+## Errata and Corrections
+
+**Status.** Experiments 5 and 6 report inflated fix counts. The underlying finding — that ultra-sparse XOR patches produce targeted behavioral change with no measured collateral damage — replicates under corrected measurement. Affected numbers are corrected here and superseded by [Experiment 12](#experiment-12-corrected-metric-replication). Version 1 results are annotated rather than rewritten, and the artifact as published is preserved at git tag `v1.0`, so anything already cited stays retrievable.
+
+### Origin
+
+[@sbenjam1n](https://github.com/sbenjam1n) independently reproduced Experiment 6 in a standalone PyTorch Q1_0 engine and reported two problems in [issue #3](https://github.com/nikshepsvn/bankai/issues/3): the hardcoded wrong token was not the model's actual top competitor on 74 of 90 probes, and the integral category was a single token contrast repeated fifteen times rather than fifteen independent measurements. Both replicate here — 76/90 and confirmed respectively. Auditing them surfaced a third, larger defect not previously reported. Their reproduction also confirmed the baseline of 17/30 validation probes wrong, matching across MLX and GGUF/PyTorch runtimes.
+
+### Defect 1 — dead probes
+
+`encode_token()` keeps only the last subtoken of an answer string. Bonsai's tokenizer splits digits into single characters:
+
+```
+" 20" -> [220, 17, 15]  [' ', '2', '0']   last subtoken = 15
+" 0"  -> [220, 15]      [' ', '0']        last subtoken = 15
+```
+
+Both reduce to the same id, so `correct_id == wrong_id` and the logit gap is **identically 0.0 regardless of any weight flip**. Such a probe cannot be fixed, cannot be broken, and scores as "wrong" because the gap is not positive.
+
+| Experiment | Probes | Dead | Effect |
+|---|---|---|---|
+| 5 (variation testing) | 90 | 7 | inflates the wrong-answer denominator |
+| 6 (generalization) | 90 | 8 | 4 of them inside the 30-probe validation set |
+
+For Experiment 6 the reported baseline of "17 of 30 wrong" contains 4 probes structurally incapable of being either right or wrong. The fixable pool was 13, not 17, so the reported 4/17 (23.5%) used an inflated denominator.
+
+Reproduce with `python experiments/00_probe_audit.py --probe-set exp6`.
+
+### Defect 2 — the measured token is not the emitted token
+
+68 of 90 Experiment 6 answers are multi-token, so the scored id is not the token the model emits next. On 52 of 90 probes the model's actual top-1 next token is a bare space — the digit was scored one position early. Under `token_gap` the model appears to answer 13/30 validation probes correctly; scoring the full answer string puts it at 22/30, and greedy decoding at 17/30.
+
+### Defect 3 — distractor quality and category degeneracy
+
+The hardcoded distractor was not the model's top competitor on 76/90 probes, median rank 23. Contrast diversity per category was badly uneven:
+
+| Category | Distinct (correct, wrong) pairs across 15 probes |
+|---|---|
+| poly_deriv | 10 |
+| exp_deriv | 10 |
+| second_deriv | 8 |
+| trig | 3 |
+| prime | 2 |
+| **integral** | **1** |
+
+The integral category is one measurement reported as fifteen, as issue #3 states. Primality is a two-token contrast but alternates direction across probes — some want ` Yes` over ` No`, others the reverse — so it cannot be won by a token bias and is not degenerate in the same way. Trig additionally mixed answer conventions: `sin(pi/6)` was scored against the fraction form while `sin(pi/4)` was scored against the decimal form, so a flip helping one necessarily hurt the other.
+
+### What is corrected
+
+Re-scoring the **same 93-flip Experiment 6 patch** under full-answer logprob, changing nothing else:
+
+| Metric | base OK | patched | fixed | broke | dead probes |
+|---|---|---|---|---|---|
+| `token_gap` (as published) | 13 | 17 | **4** | 0 | 4 |
+| first-token only | 6 | 7 | 1 | 0 | 21 |
+| `seq_logprob` | 22 | 24 | **2** | 0 | 0 |
+| greedy generation | 17 | 19 | **2** | 0 | — |
+
+Three of the four published fixes were **already correct at baseline** and were counted as failures only because of Defect 2:
+
+| Probe | Category | `token_gap` | `seq_logprob` | verdict |
+|---|---|---|---|---|
+| pd_val_1 | poly_deriv | −0.086 → +0.566 | **+1.500** → +3.062 | already correct |
+| sd_val_3 | second_deriv | −0.088 → +0.242 | **+0.391** → +0.836 | already correct |
+| int_val_4 | integral | −0.107 → +0.043 | **+0.344** → +0.578 | already correct |
+| pr_val_1 | prime | −0.250 → +0.289 | −0.250 → +0.289 | **real fix** |
+
+The integral probe is one of the three that evaporate — exactly the degenerate category issue #3 identified. Note also that `int_val_4`'s post-patch margin of +0.043 sits only 3.5× above the ~0.012 logit noise floor of batched 1-bit kernels.
+
+The corrected metric also finds a fix the original **missed** (`pd_val_0`), and greedy decoding confirms both survivors as real changes in output:
+
+```
+d/dx [x^7 + x] =    ' 0\n\nWait, let'  ->  ' 7x^6 +'
+Is 113 prime?       ' No, 113'        ->  ' Yes, 113'
+```
+
+Experiment 5's sign-flip counts were affected by 7 dead probes and understated the harm: rerun as [Experiment 13](#experiment-13-corrected-variation-testing), the 6-probe patch breaks 15 probes rather than 5. The defects were not biased toward flattering results — the same fix that reduced Experiment 6's claimed benefit increased Experiment 5's measured damage.
+
+### What is unchanged — and what improved
+
+A kilobyte-scale patch of row flips (0.007% of weights) changes targeted behavior with no measured collateral damage on held-out probes. That claim is unaffected, and the evidence behind it is now stronger, because generation-level verification depends on no distractor token at all.
+
+The correction also improved the result. Re-scoring the old patch gives 2 fixes; re-running the search against a sound objective ([Experiment 12](#experiment-12-corrected-metric-replication)) gives **5 held-out fixes and 0 breaks from a 936-byte patch** — fewer flips than Experiment 6 used, under a strictly harder bar. The original search spent 300 iterations partly optimizing a mis-tokenized target scored against a rank-23 distractor; pointing it at the right objective recovered more than the defect had cost.
+
+### Methodological change
+
+Logit gaps are retained as a **search signal** — cheap enough to hill-climb on — but are no longer reported as a **result**. This implements the fix Experiment 11's own interpretation identified ("a much more sensitive fitness function, e.g. log-probability differences instead of logit gaps"). The original metric remains available as `metric="token_gap"` so Experiments 1–11 stay reproducible exactly as published.
 
 ## Limitations
 
