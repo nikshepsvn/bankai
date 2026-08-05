@@ -809,6 +809,8 @@ Logit gaps are retained as a **search signal** — cheap enough to hill-climb on
 
 ## Limitations
 
+**The corrected metric is MLX-only.** `seq_logprob` requires `Backend.seq_logprobs()`, which is implemented for MLX but not for GGUF — the `bankai_eval` subprocess exposes a `PROBE` command returning a single logit gap and would need a continuation-scoring command alongside it. Until that lands, Experiments 9–11 (the GGUF/CUDA results) rest on `token_gap` and inherit its defects; their numbers should be read with the same caution as Experiment 6's. The GGUF backend raises a clear `NotImplementedError` rather than silently falling back, so no experiment can quietly run on the wrong metric.
+
 **Evaluation harness limitations.** Our GSM8K accuracy (22%) is well below reported benchmarks, indicating our evaluation setup doesn't match standard methodology. Logit gap probes are fast but don't always predict generation-level outcomes (visible in the 7×8 example). Proper benchmark evaluation with standard harnesses is a next step.
 
 **Greedy search finds local optima.** Population-based evolutionary search with crossover (XOR of XOR patches is a valid patch) could find better solutions in the same search budget.

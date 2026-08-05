@@ -847,6 +847,15 @@ Experiments~1--11 stay reproducible as published.
 \section{Limitations}
 \label{sec:limitations}
 
+\textbf{The corrected metric is MLX-only.} \texttt{seq\_logprob} requires
+\texttt{Backend.seq\_logprobs()}, implemented for MLX but not for GGUF: the
+\texttt{bankai\_eval} subprocess exposes a single-gap \texttt{PROBE} command and
+would need a continuation-scoring command alongside it. Until then,
+Experiments~9--11 rest on \texttt{token\_gap} and inherit its defects; their
+numbers warrant the same caution as Experiment~6's. The GGUF backend raises
+\texttt{NotImplementedError} rather than silently falling back.
+
+
 \textbf{Evaluation harness limitations.} Our GSM8K accuracy (22\%) is
 well below reported benchmarks, indicating evaluation setup differences.
 Logit gap probes don't always predict generation outcomes (visible in
