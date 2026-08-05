@@ -1,0 +1,425 @@
+{
+  "version": 1,
+  "format": "bankai_row_xor_v1",
+  "name": "calculus_corrected_baseline",
+  "description": "Calculus patch, corrected seq_logprob metric, layers [1, 2, 3, 4, 34], 300 iters, mean fitness",
+  "base_model": "prism-ml/Bonsai-8B",
+  "flips": [
+    {
+      "layer": 1,
+      "proj": "up_proj",
+      "row": 3150
+    },
+    {
+      "layer": 34,
+      "proj": "up_proj",
+      "row": 10466
+    },
+    {
+      "layer": 34,
+      "proj": "gate_proj",
+      "row": 6428
+    },
+    {
+      "layer": 4,
+      "proj": "up_proj",
+      "row": 6221
+    },
+    {
+      "layer": 34,
+      "proj": "gate_proj",
+      "row": 6179
+    },
+    {
+      "layer": 34,
+      "proj": "gate_proj",
+      "row": 1634
+    },
+    {
+      "layer": 34,
+      "proj": "gate_proj",
+      "row": 9853
+    },
+    {
+      "layer": 1,
+      "proj": "up_proj",
+      "row": 12234
+    },
+    {
+      "layer": 34,
+      "proj": "up_proj",
+      "row": 1333
+    },
+    {
+      "layer": 4,
+      "proj": "gate_proj",
+      "row": 1008
+    },
+    {
+      "layer": 34,
+      "proj": "gate_proj",
+      "row": 1322
+    },
+    {
+      "layer": 3,
+      "proj": "up_proj",
+      "row": 1504
+    },
+    {
+      "layer": 2,
+      "proj": "up_proj",
+      "row": 11695
+    },
+    {
+      "layer": 2,
+      "proj": "gate_proj",
+      "row": 5455
+    },
+    {
+      "layer": 34,
+      "proj": "up_proj",
+      "row": 7635
+    },
+    {
+      "layer": 4,
+      "proj": "gate_proj",
+      "row": 2096
+    },
+    {
+      "layer": 4,
+      "proj": "gate_proj",
+      "row": 6505
+    },
+    {
+      "layer": 3,
+      "proj": "up_proj",
+      "row": 10432
+    },
+    {
+      "layer": 34,
+      "proj": "up_proj",
+      "row": 4518
+    },
+    {
+      "layer": 2,
+      "proj": "gate_proj",
+      "row": 38
+    },
+    {
+      "layer": 1,
+      "proj": "up_proj",
+      "row": 5995
+    },
+    {
+      "layer": 4,
+      "proj": "up_proj",
+      "row": 11365
+    },
+    {
+      "layer": 4,
+      "proj": "up_proj",
+      "row": 9744
+    },
+    {
+      "layer": 34,
+      "proj": "gate_proj",
+      "row": 7016
+    },
+    {
+      "layer": 34,
+      "proj": "up_proj",
+      "row": 6000
+    },
+    {
+      "layer": 3,
+      "proj": "gate_proj",
+      "row": 5353
+    },
+    {
+      "layer": 3,
+      "proj": "gate_proj",
+      "row": 2006
+    },
+    {
+      "layer": 2,
+      "proj": "up_proj",
+      "row": 8701
+    },
+    {
+      "layer": 34,
+      "proj": "gate_proj",
+      "row": 5429
+    },
+    {
+      "layer": 34,
+      "proj": "up_proj",
+      "row": 4119
+    },
+    {
+      "layer": 34,
+      "proj": "up_proj",
+      "row": 4317
+    },
+    {
+      "layer": 4,
+      "proj": "gate_proj",
+      "row": 6337
+    },
+    {
+      "layer": 34,
+      "proj": "gate_proj",
+      "row": 7278
+    },
+    {
+      "layer": 34,
+      "proj": "gate_proj",
+      "row": 5287
+    },
+    {
+      "layer": 2,
+      "proj": "up_proj",
+      "row": 9903
+    },
+    {
+      "layer": 2,
+      "proj": "up_proj",
+      "row": 5935
+    },
+    {
+      "layer": 1,
+      "proj": "up_proj",
+      "row": 8873
+    },
+    {
+      "layer": 1,
+      "proj": "gate_proj",
+      "row": 2170
+    },
+    {
+      "layer": 1,
+      "proj": "up_proj",
+      "row": 10654
+    },
+    {
+      "layer": 4,
+      "proj": "up_proj",
+      "row": 12051
+    },
+    {
+      "layer": 1,
+      "proj": "up_proj",
+      "row": 8684
+    },
+    {
+      "layer": 34,
+      "proj": "gate_proj",
+      "row": 1161
+    },
+    {
+      "layer": 2,
+      "proj": "gate_proj",
+      "row": 10618
+    },
+    {
+      "layer": 34,
+      "proj": "gate_proj",
+      "row": 2833
+    },
+    {
+      "layer": 34,
+      "proj": "gate_proj",
+      "row": 4676
+    },
+    {
+      "layer": 1,
+      "proj": "up_proj",
+      "row": 10510
+    },
+    {
+      "layer": 1,
+      "proj": "up_proj",
+      "row": 9064
+    },
+    {
+      "layer": 34,
+      "proj": "up_proj",
+      "row": 6864
+    },
+    {
+      "layer": 34,
+      "proj": "up_proj",
+      "row": 8968
+    },
+    {
+      "layer": 4,
+      "proj": "gate_proj",
+      "row": 9729
+    },
+    {
+      "layer": 2,
+      "proj": "gate_proj",
+      "row": 59
+    },
+    {
+      "layer": 3,
+      "proj": "up_proj",
+      "row": 7397
+    },
+    {
+      "layer": 34,
+      "proj": "up_proj",
+      "row": 9762
+    },
+    {
+      "layer": 34,
+      "proj": "gate_proj",
+      "row": 9822
+    },
+    {
+      "layer": 4,
+      "proj": "gate_proj",
+      "row": 1514
+    },
+    {
+      "layer": 1,
+      "proj": "gate_proj",
+      "row": 2776
+    },
+    {
+      "layer": 2,
+      "proj": "up_proj",
+      "row": 4372
+    },
+    {
+      "layer": 4,
+      "proj": "gate_proj",
+      "row": 7469
+    },
+    {
+      "layer": 3,
+      "proj": "up_proj",
+      "row": 8439
+    },
+    {
+      "layer": 4,
+      "proj": "gate_proj",
+      "row": 259
+    },
+    {
+      "layer": 2,
+      "proj": "up_proj",
+      "row": 7192
+    },
+    {
+      "layer": 2,
+      "proj": "up_proj",
+      "row": 5138
+    },
+    {
+      "layer": 34,
+      "proj": "gate_proj",
+      "row": 10786
+    },
+    {
+      "layer": 2,
+      "proj": "gate_proj",
+      "row": 1131
+    },
+    {
+      "layer": 2,
+      "proj": "gate_proj",
+      "row": 705
+    },
+    {
+      "layer": 3,
+      "proj": "gate_proj",
+      "row": 1205
+    },
+    {
+      "layer": 1,
+      "proj": "up_proj",
+      "row": 7373
+    },
+    {
+      "layer": 1,
+      "proj": "gate_proj",
+      "row": 8716
+    },
+    {
+      "layer": 1,
+      "proj": "gate_proj",
+      "row": 8386
+    },
+    {
+      "layer": 34,
+      "proj": "up_proj",
+      "row": 2943
+    },
+    {
+      "layer": 1,
+      "proj": "gate_proj",
+      "row": 6788
+    },
+    {
+      "layer": 2,
+      "proj": "up_proj",
+      "row": 5157
+    },
+    {
+      "layer": 2,
+      "proj": "up_proj",
+      "row": 7490
+    },
+    {
+      "layer": 1,
+      "proj": "up_proj",
+      "row": 4616
+    },
+    {
+      "layer": 34,
+      "proj": "up_proj",
+      "row": 6664
+    },
+    {
+      "layer": 1,
+      "proj": "up_proj",
+      "row": 4116
+    },
+    {
+      "layer": 34,
+      "proj": "gate_proj",
+      "row": 9640
+    },
+    {
+      "layer": 34,
+      "proj": "gate_proj",
+      "row": 7865
+    }
+  ],
+  "stats": {
+    "n_flips": 78,
+    "bits_flipped": 319488,
+    "size_bytes": 936
+  },
+  "metadata": {
+    "search_algorithm": "greedy_hill_climbing_screened_mean",
+    "metric": "seq_logprob",
+    "backend": "MLXBackend",
+    "search_layers": [
+      1,
+      2,
+      3,
+      4,
+      34
+    ],
+    "search_projs": [
+      "gate_proj",
+      "up_proj"
+    ],
+    "max_iters": 300,
+    "control_penalty": 2.0,
+    "final_fitness": 0.36041666666666666,
+    "search_time_seconds": 5350.503090143204,
+    "screened_out": 8
+  }
+}

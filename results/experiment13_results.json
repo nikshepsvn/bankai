@@ -1,0 +1,1295 @@
+{
+  "patch": "patches/calculus_v1.json",
+  "n_flips": 72,
+  "seq_logprob": {
+    "fixed": [],
+    "broke": [
+      "sec_d_9",
+      "sec_d_10",
+      "trig_cos_0",
+      "trig_tan_pi4",
+      "trig_cos_pi2",
+      "trig_sin_pi3",
+      "exp_d_2",
+      "exp_d_rephrase_5"
+    ],
+    "stayed_right": [
+      "poly_d_1",
+      "poly_d_2",
+      "poly_d_3",
+      "poly_d_4",
+      "poly_d_8",
+      "poly_d_9",
+      "poly_d_10",
+      "poly_d_rephrase_1",
+      "poly_d_rephrase_3",
+      "poly_d_rephrase_4",
+      "poly_d_rephrase_5",
+      "sec_d_1",
+      "sec_d_3",
+      "sec_d_4",
+      "sec_d_8",
+      "sec_d_12",
+      "sec_d_14",
+      "int_1",
+      "int_2",
+      "int_4",
+      "int_5",
+      "int_6",
+      "int_rephrase_1",
+      "int_rephrase_2",
+      "int_rephrase_3",
+      "int_rephrase_4",
+      "int_rephrase_5",
+      "int_rephrase_6",
+      "int_rephrase_7",
+      "int_8",
+      "int_9",
+      "notprime_91",
+      "notprime_87",
+      "notprime_95",
+      "notprime_99",
+      "notprime_77",
+      "notprime_51",
+      "notprime_119",
+      "trig_sin_pi4",
+      "trig_sin_0",
+      "trig_cos_pi",
+      "trig_sin_pi",
+      "trig_cos_pi6",
+      "trig_tan_0",
+      "trig_sin_2pi",
+      "trig_cos_2pi",
+      "trig_sin_3pi2",
+      "exp_d_1",
+      "exp_d_3",
+      "exp_d_4",
+      "exp_d_5",
+      "exp_d_rephrase_1",
+      "exp_d_rephrase_4",
+      "exp_d_7",
+      "exp_d_8",
+      "exp_d_9",
+      "exp_d_10"
+    ],
+    "stayed_wrong": [
+      "poly_d_5",
+      "poly_d_6",
+      "poly_d_7",
+      "poly_d_rephrase_2",
+      "sec_d_2",
+      "sec_d_5",
+      "sec_d_6",
+      "sec_d_7",
+      "sec_d_11",
+      "sec_d_13",
+      "sec_d_15",
+      "int_3",
+      "prime_101",
+      "prime_89",
+      "prime_83",
+      "prime_71",
+      "prime_67",
+      "prime_53",
+      "prime_107",
+      "prime_113",
+      "trig_cos_pi3",
+      "trig_sin_pi2",
+      "exp_d_rephrase_2",
+      "exp_d_rephrase_3",
+      "exp_d_6"
+    ]
+  },
+  "generation": {
+    "fixed": [
+      "poly_d_1",
+      "int_3"
+    ],
+    "broke": [
+      "poly_d_4",
+      "poly_d_5",
+      "poly_d_7",
+      "poly_d_10",
+      "poly_d_rephrase_1",
+      "poly_d_rephrase_5",
+      "sec_d_9",
+      "int_rephrase_5",
+      "int_rephrase_6",
+      "int_rephrase_7",
+      "trig_sin_pi4",
+      "trig_cos_0",
+      "trig_cos_pi2",
+      "trig_sin_3pi2",
+      "exp_d_10"
+    ],
+    "stayed_right": [
+      "poly_d_2",
+      "poly_d_3",
+      "poly_d_8",
+      "poly_d_9",
+      "poly_d_rephrase_3",
+      "int_1",
+      "int_2",
+      "int_4",
+      "int_6",
+      "int_8",
+      "notprime_91",
+      "notprime_87",
+      "notprime_95",
+      "notprime_99",
+      "notprime_77",
+      "notprime_51",
+      "notprime_119",
+      "trig_sin_0",
+      "trig_cos_pi",
+      "trig_sin_pi",
+      "trig_tan_0",
+      "trig_sin_2pi",
+      "trig_cos_2pi",
+      "exp_d_1",
+      "exp_d_2",
+      "exp_d_3",
+      "exp_d_4",
+      "exp_d_5",
+      "exp_d_rephrase_1",
+      "exp_d_rephrase_2",
+      "exp_d_rephrase_4",
+      "exp_d_rephrase_5",
+      "exp_d_8",
+      "exp_d_9"
+    ],
+    "stayed_wrong": [
+      "poly_d_6",
+      "poly_d_rephrase_2",
+      "poly_d_rephrase_4",
+      "sec_d_1",
+      "sec_d_2",
+      "sec_d_3",
+      "sec_d_4",
+      "sec_d_5",
+      "sec_d_6",
+      "sec_d_7",
+      "sec_d_8",
+      "sec_d_10",
+      "sec_d_11",
+      "sec_d_12",
+      "sec_d_13",
+      "sec_d_14",
+      "sec_d_15",
+      "int_5",
+      "int_rephrase_1",
+      "int_rephrase_2",
+      "int_rephrase_3",
+      "int_rephrase_4",
+      "int_9",
+      "prime_101",
+      "prime_89",
+      "prime_83",
+      "prime_71",
+      "prime_67",
+      "prime_53",
+      "prime_107",
+      "prime_113",
+      "trig_cos_pi3",
+      "trig_sin_pi2",
+      "trig_tan_pi4",
+      "trig_sin_pi3",
+      "trig_cos_pi6",
+      "exp_d_rephrase_3",
+      "exp_d_6",
+      "exp_d_7"
+    ]
+  },
+  "generation_detail": {
+    "before": {
+      "poly_d_1": {
+        "generated": " 10x^4 + 6x^2\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "poly_d_2": {
+        "generated": " 3x^2 + 7\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "poly_d_3": {
+        "generated": " 8x^3\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "poly_d_4": {
+        "generated": " 6x^5\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "poly_d_5": {
+        "generated": " 2x + 1\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "poly_d_6": {
+        "generated": " 6x^2 + 2x\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "poly_d_7": {
+        "generated": " 4x^3 + 1\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "poly_d_8": {
+        "generated": " 10x\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "poly_d_9": {
+        "generated": " 3x^2 + 4x + 1\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "poly_d_10": {
+        "generated": " 7x^6\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "poly_d_rephrase_1": {
+        "generated": " 4x^3 + 6x. So, the derivative",
+        "correct": true,
+        "said_distractor": false
+      },
+      "poly_d_rephrase_2": {
+        "generated": " \n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "poly_d_rephrase_3": {
+        "generated": " 3x^2 + 4\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "poly_d_rephrase_4": {
+        "generated": " 2x^3 + 3x^2. Is this",
+        "correct": false,
+        "said_distractor": false
+      },
+      "poly_d_rephrase_5": {
+        "generated": " 5x^4 + 2x\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "sec_d_1": {
+        "generated": " 30x^3. Is this correct?\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sec_d_2": {
+        "generated": " 3x^2. So, if we have f(x)",
+        "correct": false,
+        "said_distractor": true
+      },
+      "sec_d_3": {
+        "generated": " 36x^4. Is this correct?\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sec_d_4": {
+        "generated": " 12x^2. Is this true?\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sec_d_5": {
+        "generated": " 3x^2 + 2x. Is this correct?\n\n",
+        "correct": false,
+        "said_distractor": true
+      },
+      "sec_d_6": {
+        "generated": " 0. So the answer is 0. But the question is",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sec_d_7": {
+        "generated": " 0. So the answer is 0. But the question is",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sec_d_8": {
+        "generated": " 0. So the answer is 0. But the question is",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sec_d_9": {
+        "generated": " 12x^2, f'''(x) = ",
+        "correct": true,
+        "said_distractor": false
+      },
+      "sec_d_10": {
+        "generated": " 10x^3, f'''(x) = ",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sec_d_11": {
+        "generated": " 12x^3 + 3x^2. Is",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sec_d_12": {
+        "generated": " 120x^3\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sec_d_13": {
+        "generated": " What is f''(x) if f(x) = x^",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sec_d_14": {
+        "generated": " 18x^2. Is this true?\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sec_d_15": {
+        "generated": " 0\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "int_1": {
+        "generated": " (x^4)/4 + C. So, if we have",
+        "correct": true,
+        "said_distractor": false
+      },
+      "int_2": {
+        "generated": " x^5/5 + C\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "int_3": {
+        "generated": " x\u00b2/2 + C. So, the integral of x dx",
+        "correct": false,
+        "said_distractor": false
+      },
+      "int_4": {
+        "generated": " x^6 / 6 + C\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "int_5": {
+        "generated": " 3*(x^3)/3 = x^3 + C",
+        "correct": false,
+        "said_distractor": false
+      },
+      "int_6": {
+        "generated": " x^2 + C. So the answer is x^2 +",
+        "correct": true,
+        "said_distractor": false
+      },
+      "int_rephrase_1": {
+        "generated": " 1/3 x^3 + C\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "int_rephrase_2": {
+        "generated": " 1/3 x^3 + C\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "int_rephrase_3": {
+        "generated": " Let me think. Okay, so I need to find the integral of",
+        "correct": false,
+        "said_distractor": false
+      },
+      "int_rephrase_4": {
+        "generated": " 2x^3/3. So, if we have f",
+        "correct": false,
+        "said_distractor": false
+      },
+      "int_rephrase_5": {
+        "generated": " x^3/3 + C. So, if we have the",
+        "correct": true,
+        "said_distractor": false
+      },
+      "int_rephrase_6": {
+        "generated": " x^4/4 + C\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "int_rephrase_7": {
+        "generated": " (x^5)/5 + C\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "int_8": {
+        "generated": " (x^7)/7 + C\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "int_9": {
+        "generated": " ?\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "prime_101": {
+        "generated": " No, 101 is not prime. It is a composite",
+        "correct": false,
+        "said_distractor": true
+      },
+      "prime_89": {
+        "generated": " No, 89 is not a prime number. It is a",
+        "correct": false,
+        "said_distractor": true
+      },
+      "prime_83": {
+        "generated": " No, 83 is not a prime number. It is a",
+        "correct": false,
+        "said_distractor": true
+      },
+      "prime_71": {
+        "generated": " No, 71 is not a prime number. It is a",
+        "correct": false,
+        "said_distractor": true
+      },
+      "prime_67": {
+        "generated": " No, 67 is not a prime number. It is a",
+        "correct": false,
+        "said_distractor": true
+      },
+      "prime_53": {
+        "generated": " No, 53 is not a prime number. It is a",
+        "correct": false,
+        "said_distractor": true
+      },
+      "prime_107": {
+        "generated": " No, 107 is not a prime number. It is",
+        "correct": false,
+        "said_distractor": true
+      },
+      "prime_113": {
+        "generated": " No, 113 is not prime. It is divisible by",
+        "correct": false,
+        "said_distractor": true
+      },
+      "notprime_91": {
+        "generated": " No, 91 is not a prime number. It is composite",
+        "correct": true,
+        "said_distractor": false
+      },
+      "notprime_87": {
+        "generated": " No, 87 is not a prime number. It is divisible",
+        "correct": true,
+        "said_distractor": false
+      },
+      "notprime_95": {
+        "generated": " No, 95 is not a prime number. It is divisible",
+        "correct": true,
+        "said_distractor": false
+      },
+      "notprime_99": {
+        "generated": " No, 99 is not a prime number. It is divisible",
+        "correct": true,
+        "said_distractor": false
+      },
+      "notprime_77": {
+        "generated": " No, 77 is not prime. It is divisible by ",
+        "correct": true,
+        "said_distractor": false
+      },
+      "notprime_51": {
+        "generated": " No, 51 is not a prime number. It is divisible",
+        "correct": true,
+        "said_distractor": false
+      },
+      "notprime_119": {
+        "generated": " No, 119 is not a prime number. It is",
+        "correct": true,
+        "said_distractor": false
+      },
+      "trig_sin_pi4": {
+        "generated": " 0.7071$. So, the answer is approximately",
+        "correct": true,
+        "said_distractor": false
+      },
+      "trig_cos_pi3": {
+        "generated": " 0.5776...$\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "trig_sin_pi2": {
+        "generated": " 0. So the answer is 0. But wait, the",
+        "correct": false,
+        "said_distractor": true
+      },
+      "trig_cos_0": {
+        "generated": " 1, cos(\u03c0) = -1, cos(2",
+        "correct": true,
+        "said_distractor": false
+      },
+      "trig_sin_0": {
+        "generated": " 0, so the answer is 0. But the question is",
+        "correct": true,
+        "said_distractor": false
+      },
+      "trig_cos_pi": {
+        "generated": " -1, so the answer is -1. But wait, the",
+        "correct": true,
+        "said_distractor": false
+      },
+      "trig_tan_pi4": {
+        "generated": " 1/\u221a2\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "trig_sin_pi": {
+        "generated": " 0. So the answer is 0. But wait, the",
+        "correct": true,
+        "said_distractor": false
+      },
+      "trig_cos_pi2": {
+        "generated": " 0$, so the derivative is 0. But the function is",
+        "correct": true,
+        "said_distractor": false
+      },
+      "trig_sin_pi3": {
+        "generated": " 0.523 radians. So, the angle is ",
+        "correct": false,
+        "said_distractor": false
+      },
+      "trig_cos_pi6": {
+        "generated": " 0.5, so the answer is 0.5.",
+        "correct": false,
+        "said_distractor": false
+      },
+      "trig_tan_0": {
+        "generated": " 0, so the derivative of tan(0) is 0",
+        "correct": true,
+        "said_distractor": false
+      },
+      "trig_sin_2pi": {
+        "generated": " 0, so the sum is zero. But the question is about",
+        "correct": true,
+        "said_distractor": false
+      },
+      "trig_cos_2pi": {
+        "generated": " 1, so the sum of the angles is 2*pi.",
+        "correct": true,
+        "said_distractor": false
+      },
+      "trig_sin_3pi2": {
+        "generated": " -1. So, the answer is -1. But wait,",
+        "correct": true,
+        "said_distractor": false
+      },
+      "exp_d_1": {
+        "generated": " 3e^(3x) = 3e^(3x",
+        "correct": true,
+        "said_distractor": false
+      },
+      "exp_d_2": {
+        "generated": " 4e^(4x) = 4e^(4x",
+        "correct": true,
+        "said_distractor": false
+      },
+      "exp_d_3": {
+        "generated": " 5e^(5x) = 5x' = ",
+        "correct": true,
+        "said_distractor": false
+      },
+      "exp_d_4": {
+        "generated": " e^x\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "exp_d_5": {
+        "generated": " -e^(-x) = -1/x\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "exp_d_rephrase_1": {
+        "generated": " 2e^(2x). So, if we have f(x",
+        "correct": true,
+        "said_distractor": false
+      },
+      "exp_d_rephrase_2": {
+        "generated": " 3e^(3x). So, if we have f(x",
+        "correct": true,
+        "said_distractor": false
+      },
+      "exp_d_rephrase_3": {
+        "generated": " \n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "exp_d_rephrase_4": {
+        "generated": " 2e^(2x), f''(x) = ",
+        "correct": true,
+        "said_distractor": false
+      },
+      "exp_d_rephrase_5": {
+        "generated": " 3e^(3x), f''(x) = ",
+        "correct": true,
+        "said_distractor": false
+      },
+      "exp_d_6": {
+        "generated": " e^(x/2) * (1/2) = e",
+        "correct": false,
+        "said_distractor": false
+      },
+      "exp_d_7": {
+        "generated": " -2e^(-2x) + 0 = -2",
+        "correct": false,
+        "said_distractor": false
+      },
+      "exp_d_8": {
+        "generated": " e^x. So, if we have f(x) = e",
+        "correct": true,
+        "said_distractor": false
+      },
+      "exp_d_9": {
+        "generated": " 2*e^x\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "exp_d_10": {
+        "generated": " 2x e^(x^2) \n\n",
+        "correct": true,
+        "said_distractor": false
+      }
+    },
+    "after": {
+      "poly_d_1": {
+        "generated": " 5x^4 + 6x^2\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "poly_d_2": {
+        "generated": " 3x^2 + 7\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "poly_d_3": {
+        "generated": " 8x^3\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "poly_d_4": {
+        "generated": " 60\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "poly_d_5": {
+        "generated": " 0 + 0 = 1\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "poly_d_6": {
+        "generated": " 3x^2 + 2x\n\n",
+        "correct": false,
+        "said_distractor": true
+      },
+      "poly_d_7": {
+        "generated": " 0\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "poly_d_8": {
+        "generated": " 10x\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "poly_d_9": {
+        "generated": " 3x^2 + 4x + 1\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "poly_d_10": {
+        "generated": " 7^6\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "poly_d_rephrase_1": {
+        "generated": " 12x^3 + 6x\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "poly_d_rephrase_2": {
+        "generated": " \n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "poly_d_rephrase_3": {
+        "generated": " 3x^2 + 4\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "poly_d_rephrase_4": {
+        "generated": " 16x^3 + 6x^2. So",
+        "correct": false,
+        "said_distractor": false
+      },
+      "poly_d_rephrase_5": {
+        "generated": " -x^3 + 3x^2\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sec_d_1": {
+        "generated": " 30x^3. So the second derivative of x^",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sec_d_2": {
+        "generated": " 3x^2. So the second derivative of x^3",
+        "correct": false,
+        "said_distractor": true
+      },
+      "sec_d_3": {
+        "generated": " 36x^4. So the second derivative of x^",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sec_d_4": {
+        "generated": " 16x^3. Is this correct?\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sec_d_5": {
+        "generated": " 3x^2 + 2x. So the second derivative",
+        "correct": false,
+        "said_distractor": true
+      },
+      "sec_d_6": {
+        "generated": " 0.00000000000",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sec_d_7": {
+        "generated": " 0.00000000000",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sec_d_8": {
+        "generated": " 0. So the answer is 0. But the question is",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sec_d_9": {
+        "generated": " -2x^3, f'''(x) = -6",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sec_d_10": {
+        "generated": " -1. So, the integral of f^5 is x^",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sec_d_11": {
+        "generated": " 12x^3 + 3x^2. So",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sec_d_12": {
+        "generated": " 1. Find the second derivative of x^5. 2",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sec_d_13": {
+        "generated": " \n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sec_d_14": {
+        "generated": " 18x^2. So the second derivative of 3",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sec_d_15": {
+        "generated": " 0\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "int_1": {
+        "generated": " x^4 /4 + C\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "int_2": {
+        "generated": " x^5 /5 + C^5 /5\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "int_3": {
+        "generated": " x^2/2 + C\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "int_4": {
+        "generated": " x^6 / 6 + C\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "int_5": {
+        "generated": " 3x^3/3 + C\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "int_6": {
+        "generated": " x^2 + C\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "int_rephrase_1": {
+        "generated": " 1. The integral of x^2 dx is 2x",
+        "correct": false,
+        "said_distractor": false
+      },
+      "int_rephrase_2": {
+        "generated": " y^2 + C(x) = 0\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "int_rephrase_3": {
+        "generated": " What is the integral of x^3 dx?\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "int_rephrase_4": {
+        "generated": " 2/3 x^3. So the antiderivative of",
+        "correct": false,
+        "said_distractor": false
+      },
+      "int_rephrase_5": {
+        "generated": " equal to x^3/3. So, the integral of x",
+        "correct": false,
+        "said_distractor": false
+      },
+      "int_rephrase_6": {
+        "generated": " x^3 dx\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "int_rephrase_7": {
+        "generated": " 10/5 x^5 + C\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "int_8": {
+        "generated": " (x^7)/7 + C\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "int_9": {
+        "generated": " ?\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "prime_101": {
+        "generated": " No. 101 is not a prime number. It is",
+        "correct": false,
+        "said_distractor": true
+      },
+      "prime_89": {
+        "generated": " No. 89 is not a prime number because it is divisible",
+        "correct": false,
+        "said_distractor": true
+      },
+      "prime_83": {
+        "generated": " No. 83 is not a prime number. 83",
+        "correct": false,
+        "said_distractor": true
+      },
+      "prime_71": {
+        "generated": " No. 71 is not a prime number because it is divisible",
+        "correct": false,
+        "said_distractor": true
+      },
+      "prime_67": {
+        "generated": " No. 7 is a prime number, but 67 is",
+        "correct": false,
+        "said_distractor": true
+      },
+      "prime_53": {
+        "generated": " No. 53 is not a prime number. 53",
+        "correct": false,
+        "said_distractor": true
+      },
+      "prime_107": {
+        "generated": " No. 107 is not a prime number. It is",
+        "correct": false,
+        "said_distractor": true
+      },
+      "prime_113": {
+        "generated": " No. 113 is not a prime number because it is",
+        "correct": false,
+        "said_distractor": true
+      },
+      "notprime_91": {
+        "generated": " No. 91 is not a prime number. It is divisible",
+        "correct": true,
+        "said_distractor": false
+      },
+      "notprime_87": {
+        "generated": " No. 87 is not a prime number. 87",
+        "correct": true,
+        "said_distractor": false
+      },
+      "notprime_95": {
+        "generated": " No. 95 is not prime. It is divisible by ",
+        "correct": true,
+        "said_distractor": false
+      },
+      "notprime_99": {
+        "generated": " No. 99 is not prime because it is divisible by ",
+        "correct": true,
+        "said_distractor": false
+      },
+      "notprime_77": {
+        "generated": " No. 77 is not a prime number. It is divisible",
+        "correct": true,
+        "said_distractor": false
+      },
+      "notprime_51": {
+        "generated": " No. 51 is not a prime number. It is divisible",
+        "correct": true,
+        "said_distractor": false
+      },
+      "notprime_119": {
+        "generated": " No. 119 is not prime. 119",
+        "correct": true,
+        "said_distractor": false
+      },
+      "trig_sin_pi4": {
+        "generated": " 1/4\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "trig_cos_pi3": {
+        "generated": " 0.5236 radians\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "trig_sin_pi2": {
+        "generated": " 0.5708 \\pi/2 = 0",
+        "correct": false,
+        "said_distractor": true
+      },
+      "trig_cos_0": {
+        "generated": " 0.0\n\n",
+        "correct": false,
+        "said_distractor": true
+      },
+      "trig_sin_0": {
+        "generated": " 0. So the answer is 0. So the answer is",
+        "correct": true,
+        "said_distractor": false
+      },
+      "trig_cos_pi": {
+        "generated": " -1. So, the answer is 1. So the answer",
+        "correct": true,
+        "said_distractor": false
+      },
+      "trig_tan_pi4": {
+        "generated": " 0.7854... \n\n",
+        "correct": false,
+        "said_distractor": true
+      },
+      "trig_sin_pi": {
+        "generated": " 0$ and $ \\pi(\\pi) = \\pi(\\",
+        "correct": true,
+        "said_distractor": false
+      },
+      "trig_cos_pi2": {
+        "generated": " 1. So the answer is 1. So the answer is",
+        "correct": false,
+        "said_distractor": true
+      },
+      "trig_sin_pi3": {
+        "generated": " 0.5236 radians\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "trig_cos_pi6": {
+        "generated": " 0.52363435512",
+        "correct": false,
+        "said_distractor": false
+      },
+      "trig_tan_0": {
+        "generated": " 0. So the answer is 0. But the question is",
+        "correct": true,
+        "said_distractor": false
+      },
+      "trig_sin_2pi": {
+        "generated": " 0. So the answer is 0. So the answer is",
+        "correct": true,
+        "said_distractor": false
+      },
+      "trig_cos_2pi": {
+        "generated": " 1. So the answer is 1. So the answer is",
+        "correct": true,
+        "said_distractor": false
+      },
+      "trig_sin_3pi2": {
+        "generated": " sin(3*pi/2) = sin(3*pi/2",
+        "correct": false,
+        "said_distractor": false
+      },
+      "exp_d_1": {
+        "generated": " 3e^(3x) \n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "exp_d_2": {
+        "generated": " 4e^(4x) \n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "exp_d_3": {
+        "generated": " 5e^(5x) \n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "exp_d_4": {
+        "generated": " e^x\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "exp_d_5": {
+        "generated": " -e^(-x) \n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "exp_d_rephrase_1": {
+        "generated": " 2e^(2x). So, if we have f(x",
+        "correct": true,
+        "said_distractor": false
+      },
+      "exp_d_rephrase_2": {
+        "generated": " 3e^(3x). So, if we have f(x",
+        "correct": true,
+        "said_distractor": false
+      },
+      "exp_d_rephrase_3": {
+        "generated": " y = 2e^(2x) \n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "exp_d_rephrase_4": {
+        "generated": " 2e^(2x), so f'(x) = ",
+        "correct": true,
+        "said_distractor": false
+      },
+      "exp_d_rephrase_5": {
+        "generated": " 3e^(3x), so f'(x) = ",
+        "correct": true,
+        "said_distractor": false
+      },
+      "exp_d_6": {
+        "generated": " e^(x/2) * (1/2) = e",
+        "correct": false,
+        "said_distractor": false
+      },
+      "exp_d_7": {
+        "generated": " -2e^(-2x) / dx = -2e",
+        "correct": false,
+        "said_distractor": false
+      },
+      "exp_d_8": {
+        "generated": " e^x. So, if we have f(x) = e",
+        "correct": true,
+        "said_distractor": false
+      },
+      "exp_d_9": {
+        "generated": " 2*e^x\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "exp_d_10": {
+        "generated": " 2e^(x^2) x\n\n",
+        "correct": false,
+        "said_distractor": false
+      }
+    }
+  },
+  "gaps": {
+    "before": {
+      "poly_d_1": 6.3359375,
+      "poly_d_2": 5.625,
+      "poly_d_3": 2.65625,
+      "poly_d_4": 7.1953125,
+      "poly_d_5": -0.25,
+      "poly_d_6": -0.21875,
+      "poly_d_7": -0.21875,
+      "poly_d_8": 2.765625,
+      "poly_d_9": 4.09375,
+      "poly_d_10": 2.9375,
+      "poly_d_rephrase_1": 6.0078125,
+      "poly_d_rephrase_2": -0.171875,
+      "poly_d_rephrase_3": 8.9921875,
+      "poly_d_rephrase_4": 1.8984375,
+      "poly_d_rephrase_5": 8.828125,
+      "sec_d_1": 1.2265625,
+      "sec_d_2": -0.953125,
+      "sec_d_3": 1.9609375,
+      "sec_d_4": 0.984375,
+      "sec_d_5": -3.6875,
+      "sec_d_6": -0.671875,
+      "sec_d_7": -1.703125,
+      "sec_d_8": 0.1796875,
+      "sec_d_9": 3.2265625,
+      "sec_d_10": 2.9609375,
+      "sec_d_11": -2.0390625,
+      "sec_d_12": 0.296875,
+      "sec_d_13": -6.2421875,
+      "sec_d_14": 1.1171875,
+      "sec_d_15": -1.9296875,
+      "int_1": 3.3046875,
+      "int_2": 6.0546875,
+      "int_3": -0.421875,
+      "int_4": 5.4453125,
+      "int_5": 2.6328125,
+      "int_6": 5.015625,
+      "int_rephrase_1": 4.671875,
+      "int_rephrase_2": 4.578125,
+      "int_rephrase_3": 2.5859375,
+      "int_rephrase_4": 5.46875,
+      "int_rephrase_5": 6.3828125,
+      "int_rephrase_6": 0.671875,
+      "int_rephrase_7": 5.8359375,
+      "int_8": 4.703125,
+      "int_9": 3.0234375,
+      "prime_101": -0.15625,
+      "prime_89": -0.6875,
+      "prime_83": -0.6640625,
+      "prime_71": -0.4609375,
+      "prime_67": -0.9765625,
+      "prime_53": -0.3203125,
+      "prime_107": -0.5859375,
+      "prime_113": -0.25,
+      "notprime_91": 0.828125,
+      "notprime_87": 0.9921875,
+      "notprime_95": 1.453125,
+      "notprime_99": 1.2890625,
+      "notprime_77": 1.015625,
+      "notprime_51": 0.5546875,
+      "notprime_119": 1.28125,
+      "trig_sin_pi4": 3.75,
+      "trig_cos_pi3": -1.203125,
+      "trig_sin_pi2": -0.671875,
+      "trig_cos_0": 1.1796875,
+      "trig_sin_0": 1.5546875,
+      "trig_cos_pi": 2.359375,
+      "trig_tan_pi4": 0.2734375,
+      "trig_sin_pi": 1.1953125,
+      "trig_cos_pi2": 1.09375,
+      "trig_sin_pi3": 0.6796875,
+      "trig_cos_pi6": 1.8359375,
+      "trig_tan_0": 1.1875,
+      "trig_sin_2pi": 1.7421875,
+      "trig_cos_2pi": 0.5078125,
+      "trig_sin_3pi2": 4.3984375,
+      "exp_d_1": 0.53125,
+      "exp_d_2": 0.015625,
+      "exp_d_3": 0.109375,
+      "exp_d_4": 18.8359375,
+      "exp_d_5": 1.203125,
+      "exp_d_rephrase_1": 0.0546875,
+      "exp_d_rephrase_2": -0.65625,
+      "exp_d_rephrase_3": -0.73828125,
+      "exp_d_rephrase_4": 1.5,
+      "exp_d_rephrase_5": 0.703125,
+      "exp_d_6": -2.21875,
+      "exp_d_7": 3.28125,
+      "exp_d_8": 22.9375,
+      "exp_d_9": 14.03125,
+      "exp_d_10": 3.96875
+    },
+    "after": {
+      "poly_d_1": 8.796875,
+      "poly_d_2": 6.265625,
+      "poly_d_3": 1.390625,
+      "poly_d_4": 4.5546875,
+      "poly_d_5": -0.7265625,
+      "poly_d_6": -2.9375,
+      "poly_d_7": -1.8828125,
+      "poly_d_8": 1.2578125,
+      "poly_d_9": 3.90625,
+      "poly_d_10": 2.0703125,
+      "poly_d_rephrase_1": 0.09375,
+      "poly_d_rephrase_2": -1.265625,
+      "poly_d_rephrase_3": 6.8046875,
+      "poly_d_rephrase_4": 5.8671875,
+      "poly_d_rephrase_5": 1.1484375,
+      "sec_d_1": 0.140625,
+      "sec_d_2": -1.3515625,
+      "sec_d_3": 2.265625,
+      "sec_d_4": 1.09375,
+      "sec_d_5": -5.1171875,
+      "sec_d_6": -0.8203125,
+      "sec_d_7": -5.5625,
+      "sec_d_8": 1.2578125,
+      "sec_d_9": -4.3671875,
+      "sec_d_10": -3.1875,
+      "sec_d_11": -1.2578125,
+      "sec_d_12": 1.125,
+      "sec_d_13": -3.1171875,
+      "sec_d_14": 1.21875,
+      "sec_d_15": -0.8828125,
+      "int_1": 2.265625,
+      "int_2": 6.0703125,
+      "int_3": -0.4453125,
+      "int_4": 5.1484375,
+      "int_5": 0.1015625,
+      "int_6": 1.5546875,
+      "int_rephrase_1": 1.1171875,
+      "int_rephrase_2": 2.96875,
+      "int_rephrase_3": 2.625,
+      "int_rephrase_4": 6.609375,
+      "int_rephrase_5": 3.703125,
+      "int_rephrase_6": 1.734375,
+      "int_rephrase_7": 4.046875,
+      "int_8": 1.625,
+      "int_9": 0.3984375,
+      "prime_101": -0.5859375,
+      "prime_89": -0.59375,
+      "prime_83": -0.7578125,
+      "prime_71": -0.6796875,
+      "prime_67": -0.609375,
+      "prime_53": -0.484375,
+      "prime_107": -0.4609375,
+      "prime_113": -0.7109375,
+      "notprime_91": 0.671875,
+      "notprime_87": 0.71875,
+      "notprime_95": 0.890625,
+      "notprime_99": 0.9375,
+      "notprime_77": 0.8046875,
+      "notprime_51": 0.546875,
+      "notprime_119": 0.578125,
+      "trig_sin_pi4": 0.6796875,
+      "trig_cos_pi3": -0.7109375,
+      "trig_sin_pi2": -0.1640625,
+      "trig_cos_0": -0.3203125,
+      "trig_sin_0": 0.5078125,
+      "trig_cos_pi": 1.3125,
+      "trig_tan_pi4": -0.40625,
+      "trig_sin_pi": 1.171875,
+      "trig_cos_pi2": -0.3828125,
+      "trig_sin_pi3": -1.8046875,
+      "trig_cos_pi6": 0.7734375,
+      "trig_tan_0": 1.3984375,
+      "trig_sin_2pi": 1.546875,
+      "trig_cos_2pi": 0.2109375,
+      "trig_sin_3pi2": 0.3125,
+      "exp_d_1": 0.390625,
+      "exp_d_2": -0.2734375,
+      "exp_d_3": 0.0546875,
+      "exp_d_4": 17.09375,
+      "exp_d_5": 1.234375,
+      "exp_d_rephrase_1": 0.109375,
+      "exp_d_rephrase_2": -0.40625,
+      "exp_d_rephrase_3": -2.4921875,
+      "exp_d_rephrase_4": 0.171875,
+      "exp_d_rephrase_5": -0.21875,
+      "exp_d_6": -1.21875,
+      "exp_d_7": 2.7265625,
+      "exp_d_8": 22.9296875,
+      "exp_d_9": 15.65625,
+      "exp_d_10": 4.15625
+    }
+  }
+}

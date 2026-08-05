@@ -1,0 +1,1339 @@
+{
+  "config": {
+    "layers": [
+      1,
+      2,
+      3,
+      4,
+      34
+    ],
+    "iters": 300,
+    "seed": 42,
+    "metric": "seq_logprob",
+    "n_flips": 78,
+    "size_bytes": 936
+  },
+  "baseline_drift_after_revert": 0.0,
+  "seq_logprob": {
+    "train": {
+      "fixed": [
+        "pd_train_6"
+      ],
+      "broke": [],
+      "stayed_right": [
+        "pd_train_0",
+        "pd_train_1",
+        "pd_train_2",
+        "pd_train_3",
+        "pd_train_4",
+        "pd_train_7",
+        "pd_train_8",
+        "sd_train_0",
+        "sd_train_1",
+        "sd_train_5",
+        "sd_train_6",
+        "sd_train_7",
+        "sd_train_8",
+        "sd_train_9",
+        "int_train_0",
+        "int_train_1",
+        "int_train_2",
+        "int_train_4",
+        "int_train_5",
+        "int_train_6",
+        "int_train_7",
+        "int_train_8",
+        "int_train_9",
+        "pr_train_5",
+        "pr_train_6",
+        "pr_train_7",
+        "pr_train_9",
+        "trig_train_2",
+        "trig_train_3",
+        "trig_train_4",
+        "trig_train_5",
+        "trig_train_6",
+        "trig_train_7",
+        "trig_train_8",
+        "trig_train_9",
+        "ed_train_0",
+        "ed_train_1",
+        "ed_train_2",
+        "ed_train_3",
+        "ed_train_4",
+        "ed_train_5",
+        "ed_train_7",
+        "ed_train_9"
+      ],
+      "stayed_wrong": [
+        "pd_train_5",
+        "pd_train_9",
+        "sd_train_2",
+        "sd_train_3",
+        "sd_train_4",
+        "int_train_3",
+        "pr_train_0",
+        "pr_train_1",
+        "pr_train_2",
+        "pr_train_3",
+        "pr_train_4",
+        "pr_train_8",
+        "trig_train_0",
+        "trig_train_1",
+        "ed_train_6",
+        "ed_train_8"
+      ]
+    },
+    "val": {
+      "fixed": [
+        "pr_val_1",
+        "pr_val_2"
+      ],
+      "broke": [],
+      "stayed_right": [
+        "pd_val_1",
+        "pd_val_2",
+        "pd_val_4",
+        "sd_val_2",
+        "sd_val_3",
+        "int_val_0",
+        "int_val_1",
+        "int_val_2",
+        "int_val_3",
+        "int_val_4",
+        "pr_val_3",
+        "pr_val_4",
+        "trig_val_0",
+        "trig_val_2",
+        "trig_val_3",
+        "trig_val_4",
+        "ed_val_0",
+        "ed_val_1",
+        "ed_val_2",
+        "ed_val_3",
+        "ed_val_4"
+      ],
+      "stayed_wrong": [
+        "pd_val_0",
+        "pd_val_3",
+        "sd_val_0",
+        "sd_val_1",
+        "sd_val_4",
+        "pr_val_0",
+        "trig_val_1"
+      ]
+    }
+  },
+  "generation": {
+    "train": {
+      "fixed": [
+        "pd_train_0",
+        "pd_train_1",
+        "sd_train_0",
+        "int_train_1",
+        "ed_train_0"
+      ],
+      "broke": [
+        "int_train_7"
+      ],
+      "stayed_right": [
+        "pd_train_2",
+        "pd_train_3",
+        "pd_train_4",
+        "pd_train_5",
+        "pd_train_7",
+        "sd_train_6",
+        "int_train_2",
+        "int_train_4",
+        "int_train_8",
+        "pr_train_5",
+        "pr_train_6",
+        "pr_train_7",
+        "pr_train_9",
+        "trig_train_2",
+        "trig_train_3",
+        "trig_train_4",
+        "trig_train_6",
+        "trig_train_7",
+        "trig_train_8",
+        "trig_train_9",
+        "ed_train_1",
+        "ed_train_2",
+        "ed_train_3",
+        "ed_train_4",
+        "ed_train_5",
+        "ed_train_6",
+        "ed_train_7",
+        "ed_train_9"
+      ],
+      "stayed_wrong": [
+        "pd_train_6",
+        "pd_train_8",
+        "pd_train_9",
+        "sd_train_1",
+        "sd_train_2",
+        "sd_train_3",
+        "sd_train_4",
+        "sd_train_5",
+        "sd_train_7",
+        "sd_train_8",
+        "sd_train_9",
+        "int_train_0",
+        "int_train_3",
+        "int_train_5",
+        "int_train_6",
+        "int_train_9",
+        "pr_train_0",
+        "pr_train_1",
+        "pr_train_2",
+        "pr_train_3",
+        "pr_train_4",
+        "pr_train_8",
+        "trig_train_0",
+        "trig_train_1",
+        "trig_train_5",
+        "ed_train_8"
+      ]
+    },
+    "val": {
+      "fixed": [
+        "pd_val_0",
+        "sd_val_3",
+        "pr_val_1",
+        "pr_val_2",
+        "ed_val_2"
+      ],
+      "broke": [
+        "trig_val_0"
+      ],
+      "stayed_right": [
+        "pd_val_1",
+        "pd_val_3",
+        "pd_val_4",
+        "int_val_0",
+        "int_val_1",
+        "pr_val_3",
+        "pr_val_4",
+        "trig_val_4",
+        "ed_val_0",
+        "ed_val_1",
+        "ed_val_4"
+      ],
+      "stayed_wrong": [
+        "pd_val_2",
+        "sd_val_0",
+        "sd_val_1",
+        "sd_val_2",
+        "sd_val_4",
+        "int_val_2",
+        "int_val_3",
+        "int_val_4",
+        "pr_val_0",
+        "trig_val_1",
+        "trig_val_2",
+        "trig_val_3",
+        "ed_val_3"
+      ]
+    }
+  },
+  "generation_detail": {
+    "val_before": {
+      "pd_val_0": {
+        "generated": " 0\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "pd_val_1": {
+        "generated": " 12x^2\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "pd_val_2": {
+        "generated": " 4x^3 + 3x^2 + 2",
+        "correct": false,
+        "said_distractor": false
+      },
+      "pd_val_3": {
+        "generated": " 10x^4 + 1\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "pd_val_4": {
+        "generated": " 6x^5 + 3\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "sd_val_0": {
+        "generated": " 0. So the derivative of x^7 is 0.",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sd_val_1": {
+        "generated": " 3x^2 + 2x. Is this correct?\n\n",
+        "correct": false,
+        "said_distractor": true
+      },
+      "sd_val_2": {
+        "generated": " 10x^3, f'''(x) = ",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sd_val_3": {
+        "generated": " 18x^2. Is this true?\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sd_val_4": {
+        "generated": " What is f''(x) if f(x) = x^",
+        "correct": false,
+        "said_distractor": false
+      },
+      "int_val_0": {
+        "generated": " (x^7)/7 + C\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "int_val_1": {
+        "generated": " x^8/8 + C\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "int_val_2": {
+        "generated": " The integral of x squared dx is (x cubed)/3 +",
+        "correct": false,
+        "said_distractor": false
+      },
+      "int_val_3": {
+        "generated": " 5/5 x^5. So the antiderivative of",
+        "correct": false,
+        "said_distractor": false
+      },
+      "int_val_4": {
+        "generated": " x^3/3 + C. So, if we have the",
+        "correct": false,
+        "said_distractor": false
+      },
+      "pr_val_0": {
+        "generated": " No, 107 is not a prime number. It is",
+        "correct": false,
+        "said_distractor": true
+      },
+      "pr_val_1": {
+        "generated": " No, 113 is not prime. It is divisible by",
+        "correct": false,
+        "said_distractor": true
+      },
+      "pr_val_2": {
+        "generated": " No, 53 is not a prime number. It is a",
+        "correct": false,
+        "said_distractor": true
+      },
+      "pr_val_3": {
+        "generated": " No, 77 is not prime. It is divisible by ",
+        "correct": true,
+        "said_distractor": false
+      },
+      "pr_val_4": {
+        "generated": " No, 119 is not a prime number. It is",
+        "correct": true,
+        "said_distractor": false
+      },
+      "trig_val_0": {
+        "generated": " 0.7071$. So, the answer is approximately",
+        "correct": true,
+        "said_distractor": false
+      },
+      "trig_val_1": {
+        "generated": " 0.5776...$\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "trig_val_2": {
+        "generated": " 0.523 radians. So, the angle is ",
+        "correct": false,
+        "said_distractor": false
+      },
+      "trig_val_3": {
+        "generated": " 0.5, so the answer is 0.5.",
+        "correct": false,
+        "said_distractor": false
+      },
+      "trig_val_4": {
+        "generated": " -1. So, the answer is -1. But wait,",
+        "correct": true,
+        "said_distractor": false
+      },
+      "ed_val_0": {
+        "generated": " 5e^(5x) = 5x' = ",
+        "correct": true,
+        "said_distractor": false
+      },
+      "ed_val_1": {
+        "generated": " 3e^(3x), f''(x) = ",
+        "correct": true,
+        "said_distractor": false
+      },
+      "ed_val_2": {
+        "generated": " -2e^(-2x) + 0 = -2",
+        "correct": false,
+        "said_distractor": false
+      },
+      "ed_val_3": {
+        "generated": " 2*e^x\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "ed_val_4": {
+        "generated": " 2x e^(x^2) \n\n",
+        "correct": true,
+        "said_distractor": false
+      }
+    },
+    "val_after": {
+      "pd_val_0": {
+        "generated": " 7x^6 + 1\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "pd_val_1": {
+        "generated": " 12x^2\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "pd_val_2": {
+        "generated": " 4x^3 + 3x^2 + 2",
+        "correct": false,
+        "said_distractor": false
+      },
+      "pd_val_3": {
+        "generated": " 10x^4 + 1\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "pd_val_4": {
+        "generated": " 6x^5 + 3\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "sd_val_0": {
+        "generated": " 120\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sd_val_1": {
+        "generated": " 3x^2 + 2x. Is this correct?\n\n",
+        "correct": false,
+        "said_distractor": true
+      },
+      "sd_val_2": {
+        "generated": " 10x^3, f'''(x) = ",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sd_val_3": {
+        "generated": " 18x. Is this true? Let me check my work",
+        "correct": true,
+        "said_distractor": false
+      },
+      "sd_val_4": {
+        "generated": " What is f''(x) if f(x) = x^",
+        "correct": false,
+        "said_distractor": false
+      },
+      "int_val_0": {
+        "generated": " (x^7)/7 + C\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "int_val_1": {
+        "generated": " x^8/8 + C\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "int_val_2": {
+        "generated": " Let me think. Okay, so I need to find the integral of",
+        "correct": false,
+        "said_distractor": false
+      },
+      "int_val_3": {
+        "generated": " 5/5 x^5 + C. So the antider",
+        "correct": false,
+        "said_distractor": false
+      },
+      "int_val_4": {
+        "generated": " x^3/3 + C. So, if we have the",
+        "correct": false,
+        "said_distractor": false
+      },
+      "pr_val_0": {
+        "generated": " No, 107 is not a prime number. It is",
+        "correct": false,
+        "said_distractor": true
+      },
+      "pr_val_1": {
+        "generated": " Yes, 113 is a prime number. It is a",
+        "correct": true,
+        "said_distractor": false
+      },
+      "pr_val_2": {
+        "generated": " Yes, 53 is a prime number. It has no div",
+        "correct": true,
+        "said_distractor": false
+      },
+      "pr_val_3": {
+        "generated": " No, 77 is not prime. It is divisible by ",
+        "correct": true,
+        "said_distractor": false
+      },
+      "pr_val_4": {
+        "generated": " No, 119 is not prime. It is divisible by",
+        "correct": true,
+        "said_distractor": false
+      },
+      "trig_val_0": {
+        "generated": " 1/\u221a2 \u2248 0.7071",
+        "correct": false,
+        "said_distractor": false
+      },
+      "trig_val_1": {
+        "generated": " 0.5776...$\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "trig_val_2": {
+        "generated": " 0.523 radians. So, the angle is ",
+        "correct": false,
+        "said_distractor": false
+      },
+      "trig_val_3": {
+        "generated": " 0.5, so the answer is 0.5.",
+        "correct": false,
+        "said_distractor": false
+      },
+      "trig_val_4": {
+        "generated": " -1. So, the answer is -1. But wait,",
+        "correct": true,
+        "said_distractor": false
+      },
+      "ed_val_0": {
+        "generated": " 5e^(5x) = 5x' = ",
+        "correct": true,
+        "said_distractor": false
+      },
+      "ed_val_1": {
+        "generated": " 3e^(3x), f''(x) = ",
+        "correct": true,
+        "said_distractor": false
+      },
+      "ed_val_2": {
+        "generated": " -2e^(-2x) = -2e^(-",
+        "correct": true,
+        "said_distractor": false
+      },
+      "ed_val_3": {
+        "generated": " 2*e^x\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "ed_val_4": {
+        "generated": " 2x e^(x^2) \n\n",
+        "correct": true,
+        "said_distractor": false
+      }
+    },
+    "train_before": {
+      "pd_train_0": {
+        "generated": " 0\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "pd_train_1": {
+        "generated": " 10x^4 + 6x^2\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "pd_train_2": {
+        "generated": " 3x^2 + 7\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "pd_train_3": {
+        "generated": " 8x^3\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "pd_train_4": {
+        "generated": " 6x^5\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "pd_train_5": {
+        "generated": " 2x + 1\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "pd_train_6": {
+        "generated": " 6x^2 + 2x\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "pd_train_7": {
+        "generated": " 3x^2 + 4x + 1\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "pd_train_8": {
+        "generated": " 2x^3 + 3x^2. Is this",
+        "correct": false,
+        "said_distractor": false
+      },
+      "pd_train_9": {
+        "generated": " \n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sd_train_0": {
+        "generated": " 12x^3. Is this correct?\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sd_train_1": {
+        "generated": " 30x^3. Is this correct?\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sd_train_2": {
+        "generated": " 3x^2. So, if we have f(x)",
+        "correct": false,
+        "said_distractor": true
+      },
+      "sd_train_3": {
+        "generated": " 0. So the answer is 0. But the question is",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sd_train_4": {
+        "generated": " 0. So the answer is 0. But the question is",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sd_train_5": {
+        "generated": " 0. So the answer is 0. But the question is",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sd_train_6": {
+        "generated": " 12x^2, f'''(x) = ",
+        "correct": true,
+        "said_distractor": false
+      },
+      "sd_train_7": {
+        "generated": " 36x^4. Is this correct?\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sd_train_8": {
+        "generated": " 12x^2. Is this true?\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sd_train_9": {
+        "generated": " 120x^3\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "int_train_0": {
+        "generated": " 2/3 x^3 + C\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "int_train_1": {
+        "generated": " (x^4)/4 + C. So, if we have",
+        "correct": false,
+        "said_distractor": false
+      },
+      "int_train_2": {
+        "generated": " x^5/5 + C\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "int_train_3": {
+        "generated": " x\u00b2/2 + C. So, the integral of x dx",
+        "correct": false,
+        "said_distractor": false
+      },
+      "int_train_4": {
+        "generated": " x^6 / 6 + C\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "int_train_5": {
+        "generated": " 1/3 x^3 + C\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "int_train_6": {
+        "generated": " 1/3 x^3 + C\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "int_train_7": {
+        "generated": " x^4/4. So, if we have f(x)",
+        "correct": true,
+        "said_distractor": false
+      },
+      "int_train_8": {
+        "generated": " x^5/5 + C\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "int_train_9": {
+        "generated": " ?\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "pr_train_0": {
+        "generated": " No, 97 is not a prime number. It is a",
+        "correct": false,
+        "said_distractor": true
+      },
+      "pr_train_1": {
+        "generated": " No, 101 is not prime. It is a composite",
+        "correct": false,
+        "said_distractor": true
+      },
+      "pr_train_2": {
+        "generated": " No, 89 is not a prime number. It is a",
+        "correct": false,
+        "said_distractor": true
+      },
+      "pr_train_3": {
+        "generated": " No, 83 is not a prime number. It is a",
+        "correct": false,
+        "said_distractor": true
+      },
+      "pr_train_4": {
+        "generated": " No, 71 is not a prime number. It is a",
+        "correct": false,
+        "said_distractor": true
+      },
+      "pr_train_5": {
+        "generated": " No, 91 is not a prime number. It is composite",
+        "correct": true,
+        "said_distractor": false
+      },
+      "pr_train_6": {
+        "generated": " No, 87 is not a prime number. It is divisible",
+        "correct": true,
+        "said_distractor": false
+      },
+      "pr_train_7": {
+        "generated": " No, 95 is not a prime number. It is divisible",
+        "correct": true,
+        "said_distractor": false
+      },
+      "pr_train_8": {
+        "generated": " No, 67 is not a prime number. It is a",
+        "correct": false,
+        "said_distractor": true
+      },
+      "pr_train_9": {
+        "generated": " No, 99 is not a prime number. It is divisible",
+        "correct": true,
+        "said_distractor": false
+      },
+      "trig_train_0": {
+        "generated": " 0.523 radians. So, the angle is ",
+        "correct": false,
+        "said_distractor": false
+      },
+      "trig_train_1": {
+        "generated": " 0. So the answer is 0. But wait, the",
+        "correct": false,
+        "said_distractor": true
+      },
+      "trig_train_2": {
+        "generated": " 1, cos(\u03c0) = -1, cos(2",
+        "correct": true,
+        "said_distractor": false
+      },
+      "trig_train_3": {
+        "generated": " 0, so the answer is 0. But the question is",
+        "correct": true,
+        "said_distractor": false
+      },
+      "trig_train_4": {
+        "generated": " -1, so the answer is -1. But wait, the",
+        "correct": true,
+        "said_distractor": false
+      },
+      "trig_train_5": {
+        "generated": " 1/\u221a2\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "trig_train_6": {
+        "generated": " 0. So the answer is 0. But wait, the",
+        "correct": true,
+        "said_distractor": false
+      },
+      "trig_train_7": {
+        "generated": " 0$, so the derivative is 0. But the function is",
+        "correct": true,
+        "said_distractor": false
+      },
+      "trig_train_8": {
+        "generated": " 0, so the derivative of tan(0) is 0",
+        "correct": true,
+        "said_distractor": false
+      },
+      "trig_train_9": {
+        "generated": " 1, so the sum of the angles is 2*pi.",
+        "correct": true,
+        "said_distractor": false
+      },
+      "ed_train_0": {
+        "generated": " 2e^(2x) + 4e^(2x",
+        "correct": false,
+        "said_distractor": false
+      },
+      "ed_train_1": {
+        "generated": " 3e^(3x) = 3e^(3x",
+        "correct": true,
+        "said_distractor": false
+      },
+      "ed_train_2": {
+        "generated": " 4e^(4x) = 4e^(4x",
+        "correct": true,
+        "said_distractor": false
+      },
+      "ed_train_3": {
+        "generated": " e^x\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "ed_train_4": {
+        "generated": " -e^(-x) = -1/x\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "ed_train_5": {
+        "generated": " 2e^(2x). So, if we have f(x",
+        "correct": true,
+        "said_distractor": false
+      },
+      "ed_train_6": {
+        "generated": " 3e^(3x). So, if we have f(x",
+        "correct": true,
+        "said_distractor": false
+      },
+      "ed_train_7": {
+        "generated": " 2e^(2x), f''(x) = ",
+        "correct": true,
+        "said_distractor": false
+      },
+      "ed_train_8": {
+        "generated": " \n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "ed_train_9": {
+        "generated": " e^x. So, if we have f(x) = e",
+        "correct": true,
+        "said_distractor": false
+      }
+    },
+    "train_after": {
+      "pd_train_0": {
+        "generated": " 4x^3 + 6x\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "pd_train_1": {
+        "generated": " 5x^4 + 6x^2\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "pd_train_2": {
+        "generated": " 3x^2 + 7\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "pd_train_3": {
+        "generated": " 8x^3\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "pd_train_4": {
+        "generated": " 6x^5\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "pd_train_5": {
+        "generated": " 2x + 1\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "pd_train_6": {
+        "generated": " 6x^2 + 2x\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "pd_train_7": {
+        "generated": " 3x^2 + 4x + 1\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "pd_train_8": {
+        "generated": " 2x^3 + 3x^2. Is this",
+        "correct": false,
+        "said_distractor": false
+      },
+      "pd_train_9": {
+        "generated": " \n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sd_train_0": {
+        "generated": " 12x^2. Is this correct?\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "sd_train_1": {
+        "generated": " 30x^3. Is this correct?\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sd_train_2": {
+        "generated": " 3x^2. So, if we have f(x)",
+        "correct": false,
+        "said_distractor": true
+      },
+      "sd_train_3": {
+        "generated": " 8x^3 - 16x^2 + ",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sd_train_4": {
+        "generated": " 0. So the answer is 0. But the question is",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sd_train_5": {
+        "generated": " 3x^2 - 6x + 3\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sd_train_6": {
+        "generated": " 12x^2, f'''(x) = ",
+        "correct": true,
+        "said_distractor": false
+      },
+      "sd_train_7": {
+        "generated": " 36x^4. Is this correct?\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sd_train_8": {
+        "generated": " 12x^2. Is this true?\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "sd_train_9": {
+        "generated": " 120x^3\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "int_train_0": {
+        "generated": " 2x^3/3 + C\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "int_train_1": {
+        "generated": " (x^4)/4 + C\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "int_train_2": {
+        "generated": " x^5/5 + C\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "int_train_3": {
+        "generated": " x\u00b2/2 + C. So, the integral of x dx",
+        "correct": false,
+        "said_distractor": false
+      },
+      "int_train_4": {
+        "generated": " x^6 / 6 + C\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "int_train_5": {
+        "generated": " 1/3 x^3 + C\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "int_train_6": {
+        "generated": " 1/3 x^3 + C\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "int_train_7": {
+        "generated": " 3/4 x^4. So the antiderivative of",
+        "correct": false,
+        "said_distractor": false
+      },
+      "int_train_8": {
+        "generated": " x^5/5 + C\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "int_train_9": {
+        "generated": " ?\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "pr_train_0": {
+        "generated": " No, 97 is not a prime number. It is a",
+        "correct": false,
+        "said_distractor": true
+      },
+      "pr_train_1": {
+        "generated": " No, 101 is not prime. It is a composite",
+        "correct": false,
+        "said_distractor": true
+      },
+      "pr_train_2": {
+        "generated": " No, 89 is not a prime number. It is a",
+        "correct": false,
+        "said_distractor": true
+      },
+      "pr_train_3": {
+        "generated": " No, 83 is not a prime number. It is a",
+        "correct": false,
+        "said_distractor": true
+      },
+      "pr_train_4": {
+        "generated": " No, 71 is not a prime number. It is a",
+        "correct": false,
+        "said_distractor": true
+      },
+      "pr_train_5": {
+        "generated": " No, 91 is not a prime number. It is composite",
+        "correct": true,
+        "said_distractor": false
+      },
+      "pr_train_6": {
+        "generated": " No, 87 is not a prime number. It is divisible",
+        "correct": true,
+        "said_distractor": false
+      },
+      "pr_train_7": {
+        "generated": " No, 95 is not a prime number. It is divisible",
+        "correct": true,
+        "said_distractor": false
+      },
+      "pr_train_8": {
+        "generated": " No, 67 is not a prime number. It is a",
+        "correct": false,
+        "said_distractor": true
+      },
+      "pr_train_9": {
+        "generated": " No, 99 is not a prime number. It is divisible",
+        "correct": true,
+        "said_distractor": false
+      },
+      "trig_train_0": {
+        "generated": " 0.523 radians. So, the angle is ",
+        "correct": false,
+        "said_distractor": false
+      },
+      "trig_train_1": {
+        "generated": " 0. So the answer is 0. But wait, the",
+        "correct": false,
+        "said_distractor": true
+      },
+      "trig_train_2": {
+        "generated": " 1, cos(\u03c0) = -1, cos(2",
+        "correct": true,
+        "said_distractor": false
+      },
+      "trig_train_3": {
+        "generated": " 0, \\sin(\\pi) = 0, \\sin",
+        "correct": true,
+        "said_distractor": false
+      },
+      "trig_train_4": {
+        "generated": " -1. So, the answer is -1. But wait,",
+        "correct": true,
+        "said_distractor": false
+      },
+      "trig_train_5": {
+        "generated": " 1/\u221a2\n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "trig_train_6": {
+        "generated": " 0. So, the answer is 0. But wait,",
+        "correct": true,
+        "said_distractor": false
+      },
+      "trig_train_7": {
+        "generated": " 0. So the answer is 0. But wait, the",
+        "correct": true,
+        "said_distractor": false
+      },
+      "trig_train_8": {
+        "generated": " 0, tan(1) \u2248 1.55",
+        "correct": true,
+        "said_distractor": false
+      },
+      "trig_train_9": {
+        "generated": " 1, so the sum is 1 + 1 + ",
+        "correct": true,
+        "said_distractor": false
+      },
+      "ed_train_0": {
+        "generated": " 2e^(2x) = 2e^(2x",
+        "correct": true,
+        "said_distractor": false
+      },
+      "ed_train_1": {
+        "generated": " 3e^(3x) = 3x' = ",
+        "correct": true,
+        "said_distractor": false
+      },
+      "ed_train_2": {
+        "generated": " 4e^(4x) = 4e^(4x",
+        "correct": true,
+        "said_distractor": false
+      },
+      "ed_train_3": {
+        "generated": " e^x\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "ed_train_4": {
+        "generated": " -e^(-x) = -1/x\n\n",
+        "correct": true,
+        "said_distractor": false
+      },
+      "ed_train_5": {
+        "generated": " 2e^(2x). So, if we have f(x",
+        "correct": true,
+        "said_distractor": false
+      },
+      "ed_train_6": {
+        "generated": " 3e^(3x). So, if we have f(x",
+        "correct": true,
+        "said_distractor": false
+      },
+      "ed_train_7": {
+        "generated": " 2e^(2x), f''(x) = ",
+        "correct": true,
+        "said_distractor": false
+      },
+      "ed_train_8": {
+        "generated": " \n\n",
+        "correct": false,
+        "said_distractor": false
+      },
+      "ed_train_9": {
+        "generated": " e^x. So, if we have f(x) = e",
+        "correct": true,
+        "said_distractor": false
+      }
+    }
+  },
+  "gaps": {
+    "val_before": {
+      "pd_val_0": -0.234375,
+      "pd_val_1": 2.234375,
+      "pd_val_2": 10.4765625,
+      "pd_val_3": -0.09375,
+      "pd_val_4": 7.61328125,
+      "sd_val_0": -3.0234375,
+      "sd_val_1": -3.6875,
+      "sd_val_2": 2.9609375,
+      "sd_val_3": 1.1171875,
+      "sd_val_4": -7.4609375,
+      "int_val_0": 4.703125,
+      "int_val_1": 5.5390625,
+      "int_val_2": 4.953125,
+      "int_val_3": 6.6875,
+      "int_val_4": 6.3828125,
+      "pr_val_0": -0.5859375,
+      "pr_val_1": -0.25,
+      "pr_val_2": -0.3203125,
+      "pr_val_3": 1.015625,
+      "pr_val_4": 1.28125,
+      "trig_val_0": 3.75,
+      "trig_val_1": -1.203125,
+      "trig_val_2": 0.6796875,
+      "trig_val_3": 1.8359375,
+      "trig_val_4": 4.3984375,
+      "ed_val_0": 0.109375,
+      "ed_val_1": 0.703125,
+      "ed_val_2": 3.28125,
+      "ed_val_3": 14.03125,
+      "ed_val_4": 3.96875
+    },
+    "val_after": {
+      "pd_val_0": -0.3125,
+      "pd_val_1": 2.9609375,
+      "pd_val_2": 10.953125,
+      "pd_val_3": -0.1875,
+      "pd_val_4": 7.73046875,
+      "sd_val_0": -2.9375,
+      "sd_val_1": -3.578125,
+      "sd_val_2": 3.3203125,
+      "sd_val_3": 1.015625,
+      "sd_val_4": -6.9296875,
+      "int_val_0": 4.9453125,
+      "int_val_1": 5.90625,
+      "int_val_2": 4.828125,
+      "int_val_3": 7.078125,
+      "int_val_4": 6.3984375,
+      "pr_val_0": -0.171875,
+      "pr_val_1": 0.171875,
+      "pr_val_2": 0.1171875,
+      "pr_val_3": 0.734375,
+      "pr_val_4": 0.9375,
+      "trig_val_0": 4.0,
+      "trig_val_1": -1.203125,
+      "trig_val_2": 1.3671875,
+      "trig_val_3": 2.5703125,
+      "trig_val_4": 4.5390625,
+      "ed_val_0": 0.1875,
+      "ed_val_1": 0.640625,
+      "ed_val_2": 3.75,
+      "ed_val_3": 14.3828125,
+      "ed_val_4": 3.78125
+    },
+    "train_before": {
+      "pd_train_0": 4.3203125,
+      "pd_train_1": 6.3359375,
+      "pd_train_2": 5.625,
+      "pd_train_3": 2.65625,
+      "pd_train_4": 7.1953125,
+      "pd_train_5": -0.25,
+      "pd_train_6": -0.21875,
+      "pd_train_7": 4.09375,
+      "pd_train_8": 1.8984375,
+      "pd_train_9": -0.171875,
+      "sd_train_0": 1.125,
+      "sd_train_1": 1.2265625,
+      "sd_train_2": -0.953125,
+      "sd_train_3": -0.671875,
+      "sd_train_4": -1.703125,
+      "sd_train_5": 0.1796875,
+      "sd_train_6": 3.2265625,
+      "sd_train_7": 1.9609375,
+      "sd_train_8": 0.984375,
+      "sd_train_9": 0.296875,
+      "int_train_0": 7.1171875,
+      "int_train_1": 3.3046875,
+      "int_train_2": 6.0546875,
+      "int_train_3": -0.421875,
+      "int_train_4": 5.4453125,
+      "int_train_5": 4.671875,
+      "int_train_6": 4.578125,
+      "int_train_7": 4.2265625,
+      "int_train_8": 2.2265625,
+      "int_train_9": 2.4609375,
+      "pr_train_0": -0.7265625,
+      "pr_train_1": -0.15625,
+      "pr_train_2": -0.6875,
+      "pr_train_3": -0.6640625,
+      "pr_train_4": -0.4609375,
+      "pr_train_5": 0.828125,
+      "pr_train_6": 0.9921875,
+      "pr_train_7": 1.453125,
+      "pr_train_8": -0.9765625,
+      "pr_train_9": 1.2890625,
+      "trig_train_0": -0.828125,
+      "trig_train_1": -0.671875,
+      "trig_train_2": 1.1796875,
+      "trig_train_3": 1.5546875,
+      "trig_train_4": 2.359375,
+      "trig_train_5": 0.2734375,
+      "trig_train_6": 1.1953125,
+      "trig_train_7": 1.09375,
+      "trig_train_8": 1.1875,
+      "trig_train_9": 0.5078125,
+      "ed_train_0": 0.4609375,
+      "ed_train_1": 0.53125,
+      "ed_train_2": 0.015625,
+      "ed_train_3": 18.8359375,
+      "ed_train_4": 1.203125,
+      "ed_train_5": 0.0546875,
+      "ed_train_6": -0.65625,
+      "ed_train_7": 1.5,
+      "ed_train_8": -0.73828125,
+      "ed_train_9": 22.9375
+    },
+    "train_after": {
+      "pd_train_0": 4.71875,
+      "pd_train_1": 6.7734375,
+      "pd_train_2": 5.890625,
+      "pd_train_3": 3.171875,
+      "pd_train_4": 7.2890625,
+      "pd_train_5": -0.265625,
+      "pd_train_6": 0.515625,
+      "pd_train_7": 4.59375,
+      "pd_train_8": 2.34375,
+      "pd_train_9": -0.34375,
+      "sd_train_0": 1.40625,
+      "sd_train_1": 1.71875,
+      "sd_train_2": -0.5390625,
+      "sd_train_3": -0.3828125,
+      "sd_train_4": -0.4609375,
+      "sd_train_5": 0.625,
+      "sd_train_6": 4.4140625,
+      "sd_train_7": 2.21875,
+      "sd_train_8": 1.4140625,
+      "sd_train_9": 0.5859375,
+      "int_train_0": 10.5625,
+      "int_train_1": 3.984375,
+      "int_train_2": 6.328125,
+      "int_train_3": -0.4375,
+      "int_train_4": 5.8046875,
+      "int_train_5": 5.484375,
+      "int_train_6": 5.3125,
+      "int_train_7": 4.71875,
+      "int_train_8": 2.4921875,
+      "int_train_9": 3.0390625,
+      "pr_train_0": -0.4921875,
+      "pr_train_1": -0.0390625,
+      "pr_train_2": -0.3515625,
+      "pr_train_3": -0.375,
+      "pr_train_4": -0.1875,
+      "pr_train_5": 0.4609375,
+      "pr_train_6": 0.6171875,
+      "pr_train_7": 1.140625,
+      "pr_train_8": -0.53125,
+      "pr_train_9": 0.921875,
+      "trig_train_0": -1.46875,
+      "trig_train_1": -0.4296875,
+      "trig_train_2": 2.3984375,
+      "trig_train_3": 1.5703125,
+      "trig_train_4": 2.53125,
+      "trig_train_5": 0.46875,
+      "trig_train_6": 1.21875,
+      "trig_train_7": 1.3359375,
+      "trig_train_8": 1.3515625,
+      "trig_train_9": 1.7578125,
+      "ed_train_0": 0.734375,
+      "ed_train_1": 0.640625,
+      "ed_train_2": 0.296875,
+      "ed_train_3": 19.1484375,
+      "ed_train_4": 1.4921875,
+      "ed_train_5": 0.1328125,
+      "ed_train_6": -0.5625,
+      "ed_train_7": 1.46875,
+      "ed_train_8": -0.41015625,
+      "ed_train_9": 23.515625
+    }
+  }
+}
