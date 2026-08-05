@@ -715,6 +715,48 @@ complete correct expression rather than rank one token above another. The
 comparison is therefore not $4 \to 2$ but \emph{4 claimed under a broken metric}
 versus \emph{5 demonstrated under a sound one}.
 
+\subsection{Extended Layer Set: A Negative Result}
+
+Experiment~6 speculated that trigonometry and exponential derivatives saw zero
+fixes because layers 5, 6 and 10---identified as high-impact for calculus---were
+absent from the search set. Rerunning with $[1,2,3,4,5,6,10,34]$ and changing
+nothing else falsifies this.
+
+\begin{table}[h]
+\centering
+\caption{Baseline versus extended layer set, corrected metric, 300 iterations.}
+\begin{tabular}{lcc}
+\toprule
+ & Baseline $[1,2,3,4,34]$ & Extended $+[5,6,10]$ \\
+\midrule
+Train (generation) & 30/60 $\to$ 33/60 & 30/60 $\to$ \textbf{35/60} \\
+Held-out (generation) & 14/30 $\to$ \textbf{19/30} & 14/30 $\to$ 17/30 \\
+Held-out fixed & \textbf{5} & 3 \\
+Held-out broke & 0 & 0 \\
+Patch & 78 flips, 936~B & 95 flips, 1{,}140~B \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The extended search fits the training set better and generalizes worse. Because
+training accuracy \emph{improved}, this is overfitting rather than under-sampling
+of the larger candidate pool. The hypothesis fails on its own terms: trigonometry
+is unmoved (2/5 to 2/5) and second derivatives are unmoved (0/5 to 0/5).
+
+This replicates the Experiment~10 pattern from an independent direction. There,
+adding attention projections eliminated all held-out fixes; here, adding MLP
+layers halves them. Two unrelated expansions of the search space at fixed
+iteration budget both traded generalization for training fit, suggesting the
+constraint is a property of greedy hill climbing on this objective rather than of
+any particular layer or projection type. The narrower search set is the better
+one, and Experiment~6's layer choice was sound even though its stated explanation
+for the trig gap was not.
+
+Both runs used 300 iterations while the candidate pool grew from ${\sim}131$K to
+${\sim}210$K rows, so the extended run sampled a smaller fraction of its space. A
+coverage-matched rerun would separate ``more layers hurt'' from ``more layers need
+more iterations,'' though it would not rescue the claim about trigonometry.
+
 % ============================================================
 \section{Experiment 13: Corrected Variation Testing}
 \label{sec:exp13}

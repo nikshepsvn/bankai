@@ -533,6 +533,8 @@ We tested 90 novel variations (15 per category) against the Experiment 4 patch. 
 
 Trig and exponential derivative categories saw zero fixes on validation. This suggests certain capability domains may not be reachable via MLP row flips in the current layer set — a calculus-specific layer impact map (Experiment 2 methodology repeated with calculus probes; see `experiments/02_logit_steering.py`) identified layers 5, 6, and 10 as high-impact for calculus but not included in the current search set, which may explain the gap.
 
+> **⚠ Hypothesis tested and falsified.** [Experiment 12](#experiment-12-corrected-metric-replication) reran the search with layers 5, 6 and 10 added. Trig did not move (2/5 → 2/5), second derivatives did not move (0/5 → 0/5), and held-out fixes *dropped* from 5 to 3 while training accuracy rose — the larger search space overfits. The layer set was not the explanation for the trig gap. Note also that the calculus-specific layer map referenced here has no committed artifact in `results/`; `02_logit_steering.py` runs on a generic probe set.
+
 **Control probes (knowledge):**
 
 | Probe | Baseline gap | Patched gap | Δ |
@@ -687,6 +689,22 @@ ed_val_2  d/dx [e^(-2x)] =        ' -2e^(-2x) + 0 = -2'   -> ' -2e^(-2x)'
 The comparison to Experiment 6 is therefore not 4 → 2 but rather *4 claimed under a broken metric* → *5 demonstrated under a sound one*. Three of Experiment 6's four fixes were measurement artifacts; the patch found here fixes five problems that were genuinely wrong and stay fixed in free generation.
 
 Primality improves most (2/5 → 4/5), consistent with it being the one original category whose contrast alternated direction and therefore could not be won by a token bias. The single training-set regression (`int_train_7`: "The antiderivative of x^3 is" goes from `x^4/4` to `3/4 x^4`) is a real one and is reported rather than screened out.
+
+**Extended layer set (negative result).** Experiment 6 speculated that trig and exponential derivatives saw zero fixes because layers 5, 6 and 10 — identified as high-impact for calculus — were not in the search set. Rerunning with `[1,2,3,4,5,6,10,34]`, changing nothing else:
+
+| | Baseline `[1,2,3,4,34]` | Extended `+[5,6,10]` |
+|---|---|---|
+| Train (generation) | 30/60 → 33/60 | 30/60 → **35/60** |
+| **Held-out (generation)** | 14/30 → **19/30** (5 fixed) | 14/30 → 17/30 (**3** fixed) |
+| Broke (held-out) | 0 | 0 |
+| Patch | 78 flips, 936 B | 95 flips, 1,140 B |
+| Final search fitness | lower | **+0.4763** |
+
+The extended search fits the training set **better** (35/60 vs 33/60) and generalizes **worse** (17/30 vs 19/30). Since training accuracy improved, this is overfitting rather than under-sampling of a larger candidate pool. The hypothesis is falsified on its own terms: adding those layers did not move trig (2/5 → 2/5) or second derivatives (0/5 → 0/5), the two categories it was supposed to explain.
+
+This replicates the Experiment 10 pattern from an independent direction. There, adding attention projections to the search space eliminated all held-out fixes; here, adding MLP layers halves them. Two unrelated expansions of the search space at fixed iteration budget both traded generalization for training fit, which suggests the constraint is a property of greedy hill climbing on this objective rather than of any particular layer or projection type. **The narrower search set is the better one**, and Experiment 6's original layer choice was sound even though its stated reason for the trig gap was not.
+
+Caveat: both runs used 300 iterations while the candidate pool grew from ~131K to ~210K rows, so the extended run sampled a smaller fraction of its space. A budget-matched-by-coverage rerun would separate "more layers hurt" from "more layers need more iterations" — but it would not rescue the specific claim about trig, which is unmoved.
 
 **Evaluation notes.** Generation is scored by prefix match after normalizing whitespace, grouping, and explicit multiplication, with `√` spelled out; a trailing constant of integration is accepted, and probes may declare alternate renderings so `0.7071` counts for `sqrt(2)/2`. Two matcher defects were found and fixed while analysing this run — `+ C` followed by further text was rejected, and `1/√2` was not accepted as `sqrt(2)/2`. Both were corrected and **both the before and after sets were re-scored under the identical rule** via `tools/rescore_generation.py`, which re-scores stored outputs without re-running the model. Answers are capped at 14 generated tokens, so a small number of long expressions (e.g. `pd_val_2`) are truncated and scored wrong in both conditions; this understates absolute accuracy but not the delta.
 
