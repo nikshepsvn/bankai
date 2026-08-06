@@ -40,7 +40,7 @@ The patch was trained on other polynomials and other primes — but never saw `x
 
 True 1-bit LLMs have no post-training adaptation method — LoRA, fine-tuning, and QAT all require continuous weights or gradients that binary models lack. We introduce **Bankai**, the first post-training adaptation method for true 1-bit LLMs, using bitwise XOR operations on binary weights. Bankai patches are sparse XOR bitmasks that modify model weights in-place with a single bitwise operation, incur zero inference overhead, and compress to around one kilobyte.\*
 
-We validate on [Bonsai 8B](https://huggingface.co/prism-ml/Bonsai-8B-mlx-1bit) (PrismML, 2026), a true 1-bit, 8.2 billion parameter language model. Through fourteen experiments: (1) binary MLP weights exhibit massive redundancy; (2) scale-guided bit flips produce **3.88x** more behavioral impact than random flips; (3–4) greedy search yields patches that correct specific calculus failures in free generation; (5) patches trained on few probes memorize rather than generalize; (6) training on diverse probe variations produces patches that **generalize to held-out prompts** — originally reported as fixing 4 of 17 problems (23.5%), a figure since corrected: measured soundly, that patch is net negative, and the corrected search (Experiment 12) fixes **5 of the 16 held-out problems the base model gets wrong (31%) with zero breakage**, verified in free generation; (7) stacking two patches via XOR is mechanically sound but behaviorally lossy; (8) a GSM8K safety check on 50 word problems shows no degradation to general math reasoning; (9) the method ports to NVIDIA GPUs via a custom C++ tool built on PrismML's llama.cpp fork, running **~24x faster** on Modal L40S and recovering 3/4 of the MLX generalization result with an expanded layer set; (10) searching attention Q/K/V/O projections finds mechanically-valid flips but **hurts generalization** — attention weights are too context-bound for XOR patching; and (11) per-group (128-bit) granularity is too fine-grained for mean-fitness search — individual flips produce signal below the noise floor of the control penalty.
+We validate on [Bonsai 8B](https://huggingface.co/prism-ml/Bonsai-8B-mlx-1bit) (PrismML, 2026), a true 1-bit, 8.2 billion parameter language model. Through fifteen experiments: (1) binary MLP weights exhibit massive redundancy; (2) scale-guided bit flips produce **3.88x** more behavioral impact than random flips; (3–4) greedy search yields patches that correct specific calculus failures in free generation; (5) patches trained on few probes memorize rather than generalize; (6) training on diverse probe variations produces patches that **generalize to held-out prompts** — originally reported as fixing 4 of 17 problems (23.5%), a figure since corrected: measured soundly, that patch is net negative, and the corrected search (Experiment 12) fixes **5 of the 16 held-out problems the base model gets wrong (31%) with zero breakage**, verified in free generation; (7) stacking two patches via XOR is mechanically sound but behaviorally lossy; (8) a GSM8K safety check on 50 word problems shows no degradation to general math reasoning; (9) the method ports to NVIDIA GPUs via a custom C++ tool built on PrismML's llama.cpp fork, running **~24x faster** on Modal L40S and recovering 3/4 of the MLX generalization result with an expanded layer set; (10) searching attention Q/K/V/O projections finds mechanically-valid flips but **hurts generalization** — attention weights are too context-bound for XOR patching; and (11) per-group (128-bit) granularity is too fine-grained for mean-fitness search — individual flips produce signal below the noise floor of the control penalty.
 
 \* *Experiments 3–4 produce sub-kilobyte patches (840–864 bytes). The generalization-optimized patch (Experiment 6) is 1.1 KB.*
 
@@ -318,6 +318,12 @@ The probe set (`experiments_exp12_data.py`) keeps the original prompts and repai
 
 Two runs: `--layers baseline` reuses Experiment 6's `[1,2,3,4,34]` for an apples-to-apples comparison, and `--layers extended` adds layers 5, 6 and 10 — which Experiment 6's own writeup identified as high-impact for calculus but never actually searched.
 
+### Experiment 15: Calculus Layer Impact Map
+
+**Question:** Are layers 5, 6 and 10 actually high-impact for calculus, as Experiment 6's writeup asserted?
+
+**Method:** Experiment 2A's methodology with calculus probes and the corrected metric. For each of the 36 layers, XOR the entire MLP (gate, up and down projections), measure the mean absolute change in `seq_logprob` score across all 90 calculus probes, restore, and repeat. Large change means the layer is load-bearing for calculus.
+
 ### Experiment 13: Corrected Variation Testing
 
 **Question:** Does Experiment 5's memorization finding survive correction, and by how much was it mismeasured?
@@ -536,7 +542,7 @@ We tested 90 novel variations (15 per category) against the Experiment 4 patch. 
 
 Trig and exponential derivative categories saw zero fixes on validation. This suggests certain capability domains may not be reachable via MLP row flips in the current layer set — a calculus-specific layer impact map (Experiment 2 methodology repeated with calculus probes; see `experiments/02_logit_steering.py`) identified layers 5, 6, and 10 as high-impact for calculus but not included in the current search set, which may explain the gap.
 
-> **⚠ Hypothesis tested and falsified.** [Experiment 12](#experiment-12-corrected-metric-replication) reran the search with layers 5, 6 and 10 added. Trig did not move (2/5 → 2/5), second derivatives did not move (0/5 → 0/5), and held-out fixes *dropped* from 5 to 3 while training accuracy rose — the larger search space overfits. The layer set was not the explanation for the trig gap. Note also that the calculus-specific layer map referenced here has no committed artifact in `results/`; `02_logit_steering.py` runs on a generic probe set.
+> **⚠ Hypothesis and premise both falsified.** [Experiment 12](#experiment-12-corrected-metric-replication) reran the search with layers 5, 6 and 10 added: trig did not move (2/5 → 2/5), second derivatives did not move (0/5 → 0/5), and held-out fixes *dropped* from 5 to 3 while training accuracy rose. [Experiment 15](#experiment-15-calculus-layer-map) then measured the layer map this paragraph cites — which had no committed artifact — and found the premise false: layers 5, 6 and 10 rank **8th, 9th and 12th** for calculus, while the five layers already being searched rank **1st through 5th**. The trig gap needs a different explanation.
 
 **Control probes (knowledge):**
 
@@ -759,6 +765,35 @@ This matters for reading the correction as a whole. The same measurement fix tha
 
 Taken together, Experiments 12 and 13 sharpen the paper's central empirical claim considerably. Training on 6 probes: 2 fixed, 15 broken. Training on 60 diverse probes: 5 fixed, 0 broken on held-out prompts. The contrast between memorization and generalization is far starker under sound measurement than it was under the original metric.
 
+### Experiment 15: Calculus Layer Impact Map
+
+Experiment 6 explained its zero trig and exponential-derivative fixes by asserting that a calculus-specific layer impact map "identified layers 5, 6, and 10 as high-impact for calculus but not included in the current search set." No artifact for that map was ever committed. This measures it.
+
+**Top 12 of 36 layers, by mean |Δ| across 90 calculus probes:**
+
+| Rank | Layer | Mean \|Δ\| | Status |
+|---|---|---|---|
+| 1 | 34 | 25.96 | searched in Exp 3–6 |
+| 2 | 2 | 11.77 | searched in Exp 3–6 |
+| 3 | 1 | 9.30 | searched in Exp 3–6 |
+| 4 | 3 | 8.28 | searched in Exp 3–6 |
+| 5 | 4 | 8.23 | searched in Exp 3–6 |
+| 6 | 0 | 7.31 | — |
+| 7 | 9 | 5.74 | — |
+| 8 | **5** | 5.15 | **claimed high-impact** |
+| 9 | **10** | 4.74 | **claimed high-impact** |
+| 10 | 8 | 4.58 | — |
+| 11 | 11 | 4.55 | — |
+| 12 | **6** | 4.46 | **claimed high-impact** |
+
+**Finding:** The premise was false. The five layers Experiments 3–6 actually searched — `[1, 2, 3, 4, 34]` — are **ranks 1 through 5** for calculus. The three layers claimed to be high-impact rank **8th, 9th and 12th**, below even layers 0 and 9, which nobody proposed adding. Layer 34 alone carries more than twice the impact of the next layer.
+
+This explains the [Experiment 12 extended-layer result](#experiment-12-corrected-metric-replication) mechanically rather than statistically. Adding layers 5, 6 and 10 did not enlarge the search into more promising territory; it diluted a candidate pool that was already optimally chosen, spending a fixed iteration budget on rows with roughly half the behavioral leverage. Better training fit with worse generalization is what that predicts.
+
+So Experiment 6's account of the trig gap was wrong twice over: the hypothesis was falsified by Experiment 12, and the premise it rested on is contradicted here. The original layer selection was not a limitation to be corrected — it was the best available choice, and the trig gap needs a different explanation.
+
+**If the search set is ever widened,** this map says the candidates are layers 0 and 9, not 5, 6 and 10.
+
 ## Errata and Corrections
 
 **Status.** Experiments 5 and 6 report inflated fix counts. The underlying finding — that ultra-sparse XOR patches produce targeted behavioral change with no measured collateral damage — replicates under corrected measurement. Affected numbers are corrected here and superseded by [Experiment 12](#experiment-12-corrected-metric-replication). Version 1 results are annotated rather than rewritten, and the artifact as published is preserved at git tag `v1.0`, so anything already cited stays retrievable.
@@ -834,6 +869,8 @@ The corrected metric also finds a fix the original **missed** (`pd_val_0`), and 
 d/dx [x^7 + x] =    ' 0\n\nWait, let'  ->  ' 7x^6 +'
 Is 113 prime?       ' No, 113'        ->  ' Yes, 113'
 ```
+
+The layer-set explanation Experiment 6 offered for its trig gap has since been tested end to end: the hypothesis is falsified in [Experiment 12](#experiment-12-corrected-metric-replication) and the premise it rested on is contradicted in [Experiment 15](#experiment-15-calculus-layer-map), which supplies the layer map that was cited but never committed.
 
 Experiment 5's sign-flip counts were affected by 7 dead probes and understated the harm: rerun as [Experiment 13](#experiment-13-corrected-variation-testing), the 6-probe patch breaks 15 probes rather than 5. The defects were not biased toward flattering results — the same fix that reduced Experiment 6's claimed benefit increased Experiment 5's measured damage.
 
@@ -927,6 +964,20 @@ The Modal experiment scripts (09–11) define their own image — cloning PrismM
 ### Run experiments
 
 ```bash
+# Audit a probe set before trusting any logit-gap result (~10 s, no GPU)
+python experiments/00_probe_audit.py --probe-set exp6
+python experiments/00_probe_audit.py --probe-set exp6 --with-model  # + distractor ranks
+
+# Corrected-metric experiments (MLX)
+python experiments/12_corrected_metric_search.py                  # Exp 6 redone (~2 h)
+python experiments/12_corrected_metric_search.py --layers extended # + layers 5,6,10 (~2.5 h)
+python experiments/13_corrected_variation_testing.py              # Exp 5 redone (~8 min)
+python experiments/14_patch_headtohead.py                         # All patches, one metric (~6 min)
+python experiments/15_calculus_layer_map.py                       # Calculus layer impact (~15 min)
+
+# Re-score stored generations after changing accepted-answer rules (no GPU)
+python tools/rescore_generation.py results/experiment12_baseline_results.json
+
 # MLX path (run on Apple Silicon)
 python experiments/01_random_flips.py           # Robustness to random flips (~8 min)
 python experiments/02_logit_steering.py         # Layer impact map (~2 min)
@@ -951,6 +1002,11 @@ bankai search --model models/bonsai-8b-mlx --target math --output patches/my_pat
 
 # Search using a custom probe file
 bankai search --model models/bonsai-8b-mlx --target my_probes.json --output patches/custom.json
+
+# Reproduce a pre-correction experiment with the original single-token metric.
+# Defaults to --metric seq_logprob; token_gap has the defects in the errata and
+# is the only option on the GGUF backend.
+bankai search --model models/bonsai-8b-mlx --target math --metric token_gap --output patches/legacy.json
 
 # Evaluate a patch
 bankai eval --model models/bonsai-8b-mlx --patch patches/patch_math_v1.json --probes math,knowledge

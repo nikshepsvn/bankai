@@ -38,7 +38,7 @@ bitmasks that modify model weights in-place with a single bitwise operation,
 incur zero inference overhead, and compress to around one kilobyte.
 
 We validate on Bonsai~8B (PrismML, 2026), a true 1-bit, 8.2~billion
-parameter language model. Through fourteen experiments, we demonstrate that:
+parameter language model. Through fifteen experiments, we demonstrate that:
 (1)~binary MLP weights exhibit massive redundancy;
 (2)~scale-guided bit flips produce $3.88\times$ more behavioral impact
 than random flips;
@@ -839,6 +839,58 @@ so underperforming here is expected. But the claim attached to it---fixing 4 of
 about logit gaps, and on those terms it does not survive sound measurement. The
 correction moves the method from $-1$ net to $+5$ net on the same yardstick,
 using 15 fewer flips and 180 fewer bytes.
+
+% ============================================================
+\section{Experiment 15: Calculus Layer Impact Map}
+\label{sec:exp15}
+
+Experiment~6 explained its absent trigonometry and exponential-derivative fixes
+by asserting that a calculus-specific layer impact map identified layers 5, 6 and
+10 as high-impact for calculus but absent from the search set. No artifact for
+that map was ever committed. Experiment~15 measures it, following
+Experiment~2A's method with calculus probes and the corrected metric: XOR the
+entire MLP of one layer, measure the mean absolute change in \texttt{seq\_logprob}
+across all 90 calculus probes, restore, repeat for all 36 layers.
+
+\begin{table}[h]
+\centering
+\caption{Top 12 of 36 layers by mean $|\Delta|$ across 90 calculus probes.}
+\begin{tabular}{clcl}
+\toprule
+Rank & Layer & Mean $|\Delta|$ & Status \\
+\midrule
+1 & 34 & 25.96 & searched in Exp 3--6 \\
+2 & 2 & 11.77 & searched in Exp 3--6 \\
+3 & 1 & 9.30 & searched in Exp 3--6 \\
+4 & 3 & 8.28 & searched in Exp 3--6 \\
+5 & 4 & 8.23 & searched in Exp 3--6 \\
+6 & 0 & 7.31 & --- \\
+7 & 9 & 5.74 & --- \\
+8 & \textbf{5} & 5.15 & \textbf{claimed high-impact} \\
+9 & \textbf{10} & 4.74 & \textbf{claimed high-impact} \\
+10 & 8 & 4.58 & --- \\
+11 & 11 & 4.55 & --- \\
+12 & \textbf{6} & 4.46 & \textbf{claimed high-impact} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Finding.} The premise was false. The five layers Experiments~3--6
+searched, $[1,2,3,4,34]$, are ranks 1 through 5 for calculus. The three layers
+claimed to be high-impact rank 8th, 9th and 12th, below even layers 0 and 9,
+which nobody proposed adding.
+
+This explains the extended-layer result of Section~\ref{sec:exp12} mechanically
+rather than statistically. Adding layers 5, 6 and 10 did not extend the search
+into more promising territory; it diluted an already optimal candidate pool,
+spending a fixed iteration budget on rows with roughly half the behavioral
+leverage. Better training fit with worse generalization is what that predicts.
+
+Experiment~6's account of the trigonometry gap was therefore wrong twice: the
+hypothesis is falsified in Section~\ref{sec:exp12}, and the premise it rested on
+is contradicted here. The original layer selection was not a limitation but the
+best available choice, and the trigonometry gap requires a different explanation.
+If the search set is widened in future work, this map points to layers 0 and 9.
 
 % ============================================================
 \section{Errata and Corrections}

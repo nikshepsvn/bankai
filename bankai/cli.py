@@ -24,6 +24,13 @@ from bankai.probes import (
 from bankai.search import greedy_search
 
 
+def _supports_seq_logprob(backend) -> bool:
+    """Whether this backend implements continuation scoring rather than inheriting
+    the base method that raises."""
+    from bankai.backends.base import Backend
+    return type(backend).seq_logprobs is not Backend.seq_logprobs
+
+
 PROBE_SETS = {
     "math": MATH_PROBES,
     "code": CODE_PROBES,
@@ -84,6 +91,12 @@ def cmd_search(args):
     else:
         backend = get_backend(args.backend)
         backend.load(args.model)
+        if args.metric == "seq_logprob" and not _supports_seq_logprob(backend):
+            raise SystemExit(
+                f"{type(backend).__name__} does not implement seq_logprobs(). "
+                "Re-run with --metric token_gap, noting that it measures a single "
+                "token id and has the defects documented in the README errata."
+            )
         patch = greedy_search(
             backend,
             target_probes=target_probes,
@@ -91,9 +104,10 @@ def cmd_search(args):
             search_layers=layers,
             max_iters=args.iters,
             control_penalty=args.penalty,
+            metric=args.metric,
             seed=args.seed,
             patch_name=f"{args.target}_patch",
-            patch_description=f"Optimized for {args.target} probes",
+            patch_description=f"Optimized for {args.target} probes ({args.metric})",
         )
 
     patch.save(args.output)
@@ -189,6 +203,11 @@ def main():
     p.add_argument("--layers", default=None, help="Comma-separated layer indices")
     p.add_argument("--penalty", type=float, default=2.0, help="Control degradation penalty")
     p.add_argument("--seed", type=int, default=42, help="Random seed")
+    p.add_argument("--metric", default="seq_logprob", choices=["seq_logprob", "token_gap"],
+                   help="Probe metric. seq_logprob scores whole answer strings and is the "
+                        "sound default; token_gap is the original single-token metric kept "
+                        "for reproducing Experiments 1-11 and has known defects (see the "
+                        "README errata). token_gap is currently the only option on GGUF.")
 
     # apply
     p = sub.add_parser("apply", help="Apply a patch and optionally run a prompt")

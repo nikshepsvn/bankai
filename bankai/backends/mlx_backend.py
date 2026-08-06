@@ -101,6 +101,20 @@ class MLXBackend(Backend):
 
         return scores
 
+    def flip_projection(self, layer: int, proj: str) -> None:
+        """XOR every bit of one projection's weight tensor.
+
+        Self-inverse, like flip_row — calling it twice restores the original.
+        Used for layer-impact sweeps, where the question is how load-bearing a
+        whole layer is rather than which individual rows matter.
+        """
+        path = f"model.layers.{layer}.mlp.{proj}"
+        mod = _get_module(self.model, path)
+        w = mod.weight
+        new_w = w ^ mx.full(w.shape, 0xFFFFFFFF, dtype=mx.uint32)
+        self.model.load_weights([(f"{path}.weight", new_w)], strict=False)
+        mx.eval(self.model.parameters())
+
     def flip_row(self, layer: int, proj: str, row: int) -> None:
         path = f"model.layers.{layer}.mlp.{proj}"
         mod = _get_module(self.model, path)
