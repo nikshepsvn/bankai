@@ -318,17 +318,23 @@ The probe set (`experiments_exp12_data.py`) keeps the original prompts and repai
 
 Two runs: `--layers baseline` reuses Experiment 6's `[1,2,3,4,34]` for an apples-to-apples comparison, and `--layers extended` adds layers 5, 6 and 10 — which Experiment 6's own writeup identified as high-impact for calculus but never actually searched.
 
-### Experiment 15: Calculus Layer Impact Map
-
-**Question:** Are layers 5, 6 and 10 actually high-impact for calculus, as Experiment 6's writeup asserted?
-
-**Method:** Experiment 2A's methodology with calculus probes and the corrected metric. For each of the 36 layers, XOR the entire MLP (gate, up and down projections), measure the mean absolute change in `seq_logprob` score across all 90 calculus probes, restore, and repeat. Large change means the layer is load-bearing for calculus.
-
 ### Experiment 13: Corrected Variation Testing
 
 **Question:** Does Experiment 5's memorization finding survive correction, and by how much was it mismeasured?
 
 **Method:** Evaluation only, no search. Apply the same 6-probe Experiment 4 patch to the same 90 novel variation prompts, with the probe set repaired the same way as Experiment 12 (`experiments_exp13_data.py`), and score with `seq_logprob` and greedy generation.
+
+### Experiment 14: Head-to-Head Patch Comparison
+
+**Question:** Experiment 6 reported 4 held-out fixes and Experiment 12 reported 5, but under different probe sets and different metrics. Which patch is actually better?
+
+**Method:** Evaluation only, no search. Score every patch — Experiment 6's, and both Experiment 12 variants — on the same 30 held-out probes with the same corrected metric, against an unpatched baseline. This is the only comparison that can settle whether the corrected search produces a better patch, since the two headline numbers were never measured on the same yardstick.
+
+### Experiment 15: Calculus Layer Impact Map
+
+**Question:** Are layers 5, 6 and 10 actually high-impact for calculus, as Experiment 6's writeup asserted?
+
+**Method:** Experiment 2A's methodology with calculus probes and the corrected metric. For each of the 36 layers, XOR the entire MLP (gate, up and down projections), measure the mean absolute change in `seq_logprob` score across all 90 calculus probes, restore, and repeat. Large change means the layer is load-bearing for calculus.
 
 ## Results
 
